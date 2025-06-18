@@ -1,0 +1,74 @@
+### Criar uma nova tarefa
+POST http://localhost:3000/tasks
+Content-Type: application/json
+
+{
+  "titulo": "Implement User Authentication",
+  "descricao": "Develop JWT-based authentication for user login",
+  "prioridade": "alta",
+  "complexidade": "C",
+  "status": "pending",
+  "projeto": "6835cbbf095b68417b6008c9",
+  "criadaPor": "6835cc58095b68417b6008d9",
+  "dataInicio": "2025-05-01T09:00:00.000Z",
+  "dataLimite": "2025-05-10T17:00:00.000Z",
+  "atribuicoes": ["6835cc58095b68417b6008d9"]
+}
+
+###
+
+### Buscar todas as tarefas
+GET http://localhost:3000/tasks
+
+###
+
+### Buscar uma tarefa por ID
+GET http://localhost:3000/tasks/6844d76050e31787acb97ad8
+
+###
+
+### Atualizar uma tarefa
+PATCH http://localhost:3000/tasks/6835cc89095b68417b6008e2
+Content-Type: application/json
+
+{
+  "titulo": "zeca pau gordinho"
+}
+
+###
+
+### Remover uma tarefa
+DELETE http://localhost:3000/tasks/{{task_id}}
+
+### Função para completar as tarefas
+PATCH http://localhost:3000/tasks/682f868f3aca184d33e4c6a8/complete
+Content-Type: application/json
+
+{
+  "userId": "6823804ed7aa7e4e1e34de80",
+  "tempo_gasto_horas": 5
+}
+
+
+### Get tasks of user
+GET http://localhost:3000/tasks/user/68120b9e27268e6965f0714a
+
+###
+### Get Brundown of project
+GET http://localhost:3000/tasks/burndown/6810d7b6bda0b83953c0261f?start=2025-04-01
+
+### Get Projection of project
+GET http://localhost:3000/tasks/projection/6810d7b6bda0b83953c0261f?start=2025-05-01
+
+### Obter recomendações de usuários para nova tarefa
+GET http://localhost:3000/tasks/recommendations?projeto=682dd692d9db5342c92b58db&complexidade=C&tarefasAnteriores=682de75a55615b677d704c09&tarefasAnteriores=682de9bc55615b677d704c11
+
+### Criar um relatório provisório de completar tarefa
+PATCH http://localhost:3000/tasks/682f31f55673db5f9f02ac11/review/6823804ed7aa7e4e1e34de80
+Content-Type: application/json
+
+{
+  "comentario": "Ótima solução, bem estruturada!",
+  "nota": 11,
+  "codigo": "const resultado = calcularMedia(valores);"
+}

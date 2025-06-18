@@ -1,0 +1,46 @@
+### Variáveis de Ambiente (opcional, mas recomendado)
+@baseUrl = http://localhost:3000
+@token = SoFjPyD2QGaeMFnvO2HawFavPQ9Z2  ### Substitua pelo token JWT de um usuário logado
+
+###
+### 1. Buscar todas as notificações do usuário logado (GET /notifications)
+###
+GET {{baseUrl}}/notifications
+Authorization: Bearer {{token}}
+
+###
+
+### 2. Buscar apenas notificações NÃO lidas do usuário logado (GET /notifications?read=false)
+###
+GET {{baseUrl}}/notifications?read=false
+Authorization: Bearer {{token}}
+
+###
+
+### 3. Buscar apenas notificações lidas do usuário logado (GET /notifications?read=true)
+###
+GET {{baseUrl}}/notifications?read=true
+Authorization: Bearer {{token}}
+
+###
+
+### 4. Marcar uma notificação específica como lida (PATCH /notifications/:id/read)
+### Substitua {{notification_id_to_read}} pelo ID de uma notificação existente que não esteja lida.
+###
+PATCH {{baseUrl}}/notifications/{{notification_id_to_read}}/read
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+###
+
+### 5. Marcar TODAS as notificações não lidas do usuário logado como lidas (PATCH /notifications/mark-all-as-read)
+###
+PATCH {{baseUrl}}/notifications/mark-all-as-read
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+###
