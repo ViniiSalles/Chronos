@@ -8,7 +8,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Types, isValidObjectId } from 'mongoose';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { Project, ProjectDocument } from 'src/schema/projeto.schema';
@@ -23,6 +23,7 @@ import {
 } from 'src/schema/avaliacao-tarefa.schema';
 import { NotificationService } from 'src/notifications/notifications.service';
 import { NotificationEventType } from 'src/schema/notificacao.schema';
+import { EvaluateTaskDto } from './dto/evaluate-task.dto';
 
 @Injectable()
 export class TaskService {
@@ -38,7 +39,7 @@ export class TaskService {
     @Inject(forwardRef(() => UserService)) private userService: UserService,
     @Inject(forwardRef(() => NotificationService))
     private notificationService: NotificationService,
-  ) {}
+  ) { }
 
   async create(
     createTaskDto: CreateTaskDto,
@@ -134,6 +135,9 @@ export class TaskService {
     return task;
   }
 
+
+
+  //metódo update corrigido
   async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
     const session = await this.taskModel.startSession();
     session.startTransaction();
@@ -161,7 +165,6 @@ export class TaskService {
         if (!project)
           throw new NotFoundException('Novo projeto não encontrado');
 
-        // Remove task from old project's tasks array
         await this.projectModel
           .updateOne(
             { _id: task.projeto },
@@ -170,7 +173,6 @@ export class TaskService {
           )
           .exec();
 
-        // Add task to new project's tasks array
         project.tasks.push(task._id as Types.ObjectId);
         await project.save({ session });
       }
@@ -245,12 +247,18 @@ export class TaskService {
             relatedToId: updatedTask._id.toString(),
             relatedToModel: 'Task',
           });
-          const otherRecipients = new Set([
-            updatedTask.criadaPor.toString(),
-            ...oldAssignedUsers,
-          ]);
+
+          const otherRecipients = new Set(oldAssignedUsers);
+          if (updatedTask.criadaPor) {
+            otherRecipients.add(updatedTask.criadaPor.toString());
+          }
           otherRecipients.delete(userId);
+
           for (const recipientId of otherRecipients) {
+            if (!isValidObjectId(recipientId)) {
+                this.logger.error(`ID de recipient inválido para notificação de adição: ${recipientId}`);
+                continue;
+            }
             await this.notificationService.createNotification({
               recipient: recipientId,
               message: `${addedUserName} foi adicionado à tarefa "${updatedTask.titulo}".`,
@@ -272,12 +280,18 @@ export class TaskService {
             relatedToId: updatedTask._id.toString(),
             relatedToModel: 'Task',
           });
-          const otherRecipients = new Set([
-            updatedTask.criadaPor.toString(),
-            ...newAssignedUsers,
-          ]);
+
+          const otherRecipients = new Set(newAssignedUsers);
+          if (updatedTask.criadaPor) {
+            otherRecipients.add(updatedTask.criadaPor.toString());
+          }
           otherRecipients.delete(userId);
+
           for (const recipientId of otherRecipients) {
+            if (!isValidObjectId(recipientId)) {
+                this.logger.error(`ID de recipient inválido para notificação de remoção: ${recipientId}`);
+                continue;
+            }
             await this.notificationService.createNotification({
               recipient: recipientId,
               message: `${removedUserName} foi removido(a) da tarefa "${updatedTask.titulo}".`,
@@ -299,33 +313,45 @@ export class TaskService {
 
       if (updatedTask.status !== oldStatus) {
         const message = `O status da tarefa "${updatedTask.titulo}" mudou para "${updatedTask.status}".`;
-        const recipients = new Set([
-          ...updatedTask.atribuicoes.map((u) => u.toString()),
-          updatedTask.criadaPor.toString(),
-        ]);
+        
+        const recipients = new Set(updatedTask.atribuicoes.map((u) => u.toString()));
+        if (updatedTask.criadaPor) {
+            recipients.add(updatedTask.criadaPor.toString());
+        }
+
         for (const recipientId of recipients) {
-          await this.notificationService.createNotification({
-            recipient: recipientId,
-            message: message,
-            eventType: NotificationEventType.TASK_UPDATED,
-            relatedToId: updatedTask._id.toString(),
-            relatedToModel: 'Task',
-          });
+            if (!isValidObjectId(recipientId)) {
+                this.logger.error(`ID de recipient inválido para notificação de status: ${recipientId}`);
+                continue;
+            }
+            await this.notificationService.createNotification({
+              recipient: recipientId,
+              message: message,
+              eventType: NotificationEventType.TASK_UPDATED,
+              relatedToId: updatedTask._id.toString(),
+              relatedToModel: 'Task',
+            });
         }
       } else if (hasContentChanged) {
         const message = `A tarefa "${updatedTask.titulo}" foi atualizada.`;
-        const recipients = new Set([
-          ...updatedTask.atribuicoes.map((u) => u.toString()),
-          updatedTask.criadaPor.toString(),
-        ]);
+
+        const recipients = new Set(updatedTask.atribuicoes.map((u) => u.toString()));
+        if (updatedTask.criadaPor) {
+            recipients.add(updatedTask.criadaPor.toString());
+        }
+        
         for (const recipientId of recipients) {
-          await this.notificationService.createNotification({
-            recipient: recipientId,
-            message: message,
-            eventType: NotificationEventType.TASK_UPDATED,
-            relatedToId: updatedTask._id.toString(),
-            relatedToModel: 'Task',
-          });
+            if (!isValidObjectId(recipientId)) {
+                this.logger.error(`ID de recipient inválido para notificação de conteúdo: ${recipientId}`);
+                continue;
+            }
+            await this.notificationService.createNotification({
+              recipient: recipientId,
+              message: message,
+              eventType: NotificationEventType.TASK_UPDATED,
+              relatedToId: updatedTask._id.toString(),
+              relatedToModel: 'Task',
+            });
         }
       }
 
@@ -341,7 +367,218 @@ export class TaskService {
     } finally {
       session.endSession();
     }
-  }
+}
+
+
+  //metódo update antigo (DEPRECADO), caso algo pare ce funcionar, rever este codigo como referencia
+  // async update(id: string, updateTaskDto: UpdateTaskDto): Promise<Task> {
+  //   const session = await this.taskModel.startSession();
+  //   session.startTransaction();
+  //   try {
+  //     const task = await this.taskModel.findById(id).session(session).exec();
+  //     if (!task) throw new NotFoundException('Tarefa não encontrada');
+
+  //     const oldStatus = task.status;
+  //     const oldAssignedUsers = task.atribuicoes.map((u) => u.toString());
+
+  //     let project = await this.projectModel
+  //       .findById(task.projeto)
+  //       .session(session)
+  //       .exec();
+  //     if (!project) throw new NotFoundException('Projeto não encontrado');
+
+  //     if (
+  //       updateTaskDto.projeto &&
+  //       updateTaskDto.projeto !== task.projeto.toString()
+  //     ) {
+  //       project = await this.projectModel
+  //         .findById(updateTaskDto.projeto)
+  //         .session(session)
+  //         .exec();
+  //       if (!project)
+  //         throw new NotFoundException('Novo projeto não encontrado');
+
+  //       // Remove task from old project's tasks array
+  //       await this.projectModel
+  //         .updateOne(
+  //           { _id: task.projeto },
+  //           { $pull: { tasks: task._id } },
+  //           { session },
+  //         )
+  //         .exec();
+
+  //       // Add task to new project's tasks array
+  //       project.tasks.push(task._id as Types.ObjectId);
+  //       await project.save({ session });
+  //     }
+
+  //     if (updateTaskDto.aprovadaPor) {
+  //       const approver = await this.userService.findOne(
+  //         updateTaskDto.aprovadaPor,
+  //       );
+  //       if (!approver)
+  //         throw new NotFoundException('Usuário aprovador não encontrado');
+  //       const approverInProject = project.users.some(
+  //         (u) => u.id.toString() === updateTaskDto.aprovadaPor,
+  //       );
+  //       if (!approverInProject) {
+  //         throw new BadRequestException(
+  //           'Usuário aprovador não faz parte do projeto',
+  //         );
+  //       }
+  //     }
+
+  //     const updatedTask = await this.taskModel
+  //       .findByIdAndUpdate(id, updateTaskDto, { new: true, session })
+  //       .populate('projeto criadaPor aprovadaPor atribuicoes')
+  //       .exec();
+
+  //     if (!updatedTask) throw new NotFoundException('Tarefa não encontrada');
+
+  //     if (updateTaskDto.atribuicoes) {
+  //       await this.taskUserModel
+  //         .deleteMany({ task_id: id })
+  //         .session(session)
+  //         .exec();
+
+  //       const newAssignedUsers = updateTaskDto.atribuicoes.map((u) =>
+  //         u.toString(),
+  //       );
+
+  //       for (const userId of newAssignedUsers) {
+  //         const user = await this.userService.findOne(userId);
+  //         if (!user)
+  //           throw new NotFoundException(`Usuário ${userId} não encontrado`);
+
+  //         const userInProject = project.users.some(
+  //           (u) => u.id.toString() === userId,
+  //         );
+  //         if (!userInProject) {
+  //           throw new BadRequestException(
+  //             `Usuário ${userId} não faz parte do projeto`,
+  //           );
+  //         }
+  //         await this.taskUserModel.create(
+  //           [{ task_id: id, user_id: userId, notificado_relacionada: false }],
+  //           { session },
+  //         );
+  //       }
+
+  //       const addedUsers = newAssignedUsers.filter(
+  //         (uId) => !oldAssignedUsers.includes(uId),
+  //       );
+  //       const removedUsers = oldAssignedUsers.filter(
+  //         (uId) => !newAssignedUsers.includes(uId),
+  //       );
+
+  //       for (const userId of addedUsers) {
+  //         const addedUserName =
+  //           (await this.userService.findOne(userId))?.nome ||
+  //           'usuário(a) desconhecido(a)';
+  //         await this.notificationService.createNotification({
+  //           recipient: userId,
+  //           message: `Você foi atribuído à tarefa: "${updatedTask.titulo}".`,
+  //           eventType: NotificationEventType.TASK_UPDATED,
+  //           relatedToId: updatedTask._id.toString(),
+  //           relatedToModel: 'Task',
+  //         });
+  //         const otherRecipients = new Set([
+  //           updatedTask.criadaPor.toString(),
+  //           ...oldAssignedUsers,
+  //         ]);
+  //         otherRecipients.delete(userId);
+  //         for (const recipientId of otherRecipients) {
+  //           await this.notificationService.createNotification({
+  //             recipient: recipientId,
+  //             message: `${addedUserName} foi adicionado à tarefa "${updatedTask.titulo}".`,
+  //             eventType: NotificationEventType.TASK_UPDATED,
+  //             relatedToId: updatedTask._id.toString(),
+  //             relatedToModel: 'Task',
+  //           });
+  //         }
+  //       }
+
+  //       for (const userId of removedUsers) {
+  //         const removedUserName =
+  //           (await this.userService.findOne(userId))?.nome ||
+  //           'usuário(a) desconhecido(a)';
+  //         await this.notificationService.createNotification({
+  //           recipient: userId,
+  //           message: `Você foi removido da tarefa: "${updatedTask.titulo}".`,
+  //           eventType: NotificationEventType.TASK_UPDATED,
+  //           relatedToId: updatedTask._id.toString(),
+  //           relatedToModel: 'Task',
+  //         });
+  //         const otherRecipients = new Set([
+  //           updatedTask.criadaPor.toString(),
+  //           ...newAssignedUsers,
+  //         ]);
+  //         otherRecipients.delete(userId);
+  //         for (const recipientId of otherRecipients) {
+  //           await this.notificationService.createNotification({
+  //             recipient: recipientId,
+  //             message: `${removedUserName} foi removido(a) da tarefa "${updatedTask.titulo}".`,
+  //             eventType: NotificationEventType.TASK_UPDATED,
+  //             relatedToId: updatedTask._id.toString(),
+  //             relatedToModel: 'Task',
+  //           });
+  //         }
+  //       }
+  //     }
+
+  //     const hasContentChanged =
+  //       updatedTask.titulo !== task.titulo ||
+  //       updatedTask.descricao !== task.descricao ||
+  //       updatedTask.dataInicio?.getTime() !== task.dataInicio?.getTime() ||
+  //       updatedTask.dataLimite?.getTime() !== task.dataLimite?.getTime() ||
+  //       updatedTask.complexidade !== task.complexidade ||
+  //       updatedTask.prioridade !== task.prioridade;
+
+  //     if (updatedTask.status !== oldStatus) {
+  //       const message = `O status da tarefa "${updatedTask.titulo}" mudou para "${updatedTask.status}".`;
+  //       const recipients = new Set([
+  //         ...updatedTask.atribuicoes.map((u) => u.toString()),
+  //         updatedTask.criadaPor.toString(),
+  //       ]);
+  //       for (const recipientId of recipients) {
+  //         await this.notificationService.createNotification({
+  //           recipient: recipientId,
+  //           message: message,
+  //           eventType: NotificationEventType.TASK_UPDATED,
+  //           relatedToId: updatedTask._id.toString(),
+  //           relatedToModel: 'Task',
+  //         });
+  //       }
+  //     } else if (hasContentChanged) {
+  //       const message = `A tarefa "${updatedTask.titulo}" foi atualizada.`;
+  //       const recipients = new Set([
+  //         ...updatedTask.atribuicoes.map((u) => u.toString()),
+  //         updatedTask.criadaPor.toString(),
+  //       ]);
+  //       for (const recipientId of recipients) {
+  //         await this.notificationService.createNotification({
+  //           recipient: recipientId,
+  //           message: message,
+  //           eventType: NotificationEventType.TASK_UPDATED,
+  //           relatedToId: updatedTask._id.toString(),
+  //           relatedToModel: 'Task',
+  //         });
+  //       }
+  //     }
+
+  //     await session.commitTransaction();
+  //     return updatedTask;
+  //   } catch (error) {
+  //     await session.abortTransaction();
+  //     this.logger.error(
+  //       `Erro ao atualizar tarefa ${id}: ${error.message}`,
+  //       error.stack,
+  //     );
+  //     throw error;
+  //   } finally {
+  //     session.endSession();
+  //   }
+  // }
 
   async remove(id: string): Promise<void> {
     const session = await this.taskModel.startSession();
@@ -833,6 +1070,86 @@ export class TaskService {
         atribuicoes: userId,
       })
       .populate('projeto criadaPor aprovadaPor atribuicoes')
+      .exec();
+  }
+
+
+  // ====================================================================
+  // MÉTODO DE AVALIAÇÃO (garantindo consistência)
+  // ====================================================================
+  async evaluate(
+    evaluateTaskDto: EvaluateTaskDto,
+    reviewerId: string,
+  ): Promise<AvaliacaoTask> {
+    const { taskId, nota, comentario } = evaluateTaskDto;
+    const session = await this.taskModel.startSession();
+    session.startTransaction();
+
+    try {
+      const task = await this.taskModel.findById(taskId).session(session).exec();
+      if (!task) {
+        throw new NotFoundException(`Tarefa com ID ${taskId} não encontrada.`);
+      }
+      if (task.avaliacaoId) {
+        throw new BadRequestException('Esta tarefa já foi avaliada.');
+      }
+      if (!task.atribuicoes || task.atribuicoes.length === 0) {
+        throw new NotFoundException(`Tarefa com ID ${taskId} não possui usuário para ser avaliado.`);
+      }
+      const assignedUserId = task.atribuicoes[0];
+
+      const newEvaluation = new this.avaliacaoTaskModel({
+        task_id: task._id,
+        user_id_do_avaliado: assignedUserId,
+        user_id_do_avaliador: new Types.ObjectId(reviewerId),
+        nota: nota,
+        code: comentario,
+        data_avaliacao: new Date(),
+        gerada_automaticamente: false,
+      });
+
+      const savedEvaluation = await newEvaluation.save({ session });
+      task.avaliacaoId = savedEvaluation._id as Types.ObjectId;
+      await task.save({ session });
+
+      await session.commitTransaction();
+      return savedEvaluation;
+    } catch (error) {
+      await session.abortTransaction();
+      this.logger.error(`Erro ao avaliar tarefa: ${error.message}`, error.stack);
+      throw error;
+    } finally {
+      session.endSession();
+    }
+  }
+
+  // ====================================================================
+  // MÉTODO DE BUSCAR TAREFAS CONCLUÍDAS (usando sua lógica funcional)
+  // ====================================================================
+  async getCompletedTasks(projectId: string): Promise<Task[]> {
+    return this.taskModel
+      .find({
+        projeto: projectId,
+        status: 'done',
+      })
+      .populate('projeto')
+      .populate('criadaPor')
+      .populate('aprovadaPor')
+      .populate('atribuicoes')
+      .populate('avaliacaoId')
+      .exec();
+  }
+
+  /**
+   * NOVO MÉTODO PARA BUSCAR TAREFAS CONCLUÍDAS
+   */
+  async findDoneTasks(projectId: string): Promise<Task[]> {
+    return this.taskModel
+      .find({ status: 'done', projeto: projectId })
+      .populate('projeto')
+      .populate('criadaPor')
+      .populate('aprovadaPor')
+      .populate('atribuicoes')
       .exec();
   }
 }
