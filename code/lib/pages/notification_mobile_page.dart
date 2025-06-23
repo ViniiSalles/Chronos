@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:code/common/constants/app_colors.dart';
 import 'package:code/components/mobile_layout.dart'; // Importa o MobileLayout
-import 'package:code/services/task_service.dart'; // Importa o TaskService
+import 'package:code/servicesMobile/task_service.dart'; // Importa o TaskService
 import 'package:intl/intl.dart'; // Para formatação de data
 
 class NotificationMobilePage extends StatefulWidget {

@@ -2,7 +2,7 @@ import 'package:code/common/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:code/common/theme/app_theme.dart';
-import 'package:code/services/task_service.dart';
+import 'package:code/servicesMobile/task_service.dart';
 import 'package:intl/intl.dart';
 
 import 'dart:math';

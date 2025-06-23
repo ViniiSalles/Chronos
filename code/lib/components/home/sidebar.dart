@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:code/common/constants/app_colors.dart';
 import 'package:code/components/home/sidebaricon.dart';
 import 'package:code/pages/project_registration_page.dart';
-import 'package:code/services/project_service.dart';
+import 'package:code/servicesMobile/project_service.dart';
 import 'package:code/components/home/project_edit_modal.dart';
 import 'package:code/components/home/project_delete_modal.dart';
 import 'package:code/components/notification/notification_popup.dart';

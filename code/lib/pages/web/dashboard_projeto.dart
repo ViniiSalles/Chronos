@@ -37,22 +37,10 @@ class DashboardProjeto extends StatefulWidget {
 
 class _DashboardProjetoState extends State<DashboardProjeto> {
   // Dados para os gráficos agora são dinâmicos
-  Map<String, double> taskData = {
-    'A': 0,
-    'B': 0,
-    'C': 0,
-    'D': 0,
-  };
-  Map<String, double> statusData = {
-    'Completas': 0,
-    'Pendentes': 0,
-  };
-  Map<String, double> priorityData = {
-    'Baixa': 0,
-    'Média': 0,
-    'Alta': 0,
-  };
-
+  Map<String, double> taskData = {'A': 0, 'B': 0, 'C': 0, 'D': 0,};
+  Map<String, double> statusData = {'Completas': 0, 'Pendentes': 0,};
+  Map<String, double> priorityData = {'Baixa': 0, 'Média': 0, 'Alta': 0,};
+  
   // *** ALTERAÇÃO 1: Remover 'final' para tornar a lista de colaboradores mutável ***
   List<Colaborador> colaboradores = [];
 
@@ -62,27 +50,15 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
   int? diasRestantes;
 
   // Dados e configurações que não mudam
-  final List<Color> barColors = const [
-    Colors.blue,
-    Colors.green,
-    Colors.orange,
-    Colors.red,
-  ];
-  final List<Color> statusColors = const [
-    Colors.teal,
-    Colors.amber,
-  ];
-  final List<Color> priorityColors = const [
-    Colors.lightGreen,
-    Colors.orangeAccent,
-    Colors.redAccent,
-  ];
+  final List<Color> barColors = const [ Colors.blue, Colors.green, Colors.orange, Colors.red, ];
+  final List<Color> statusColors = const [ Colors.teal, Colors.amber, ];
+  final List<Color> priorityColors = const [ Colors.lightGreen, Colors.orangeAccent, Colors.redAccent, ];
   final Color onTimeColor = Colors.cyan;
   final Color overdueColor = Colors.pink;
   Map<String, String> projects = {};
   String? selectedProject;
   String? selectedProjectId;
-
+  
   @override
   void initState() {
     super.initState();
@@ -92,8 +68,7 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
   void getProjects() async {
     // ... (código sem alteração)
     try {
-      final url =
-          Uri.parse('https://chronos-production-f584.up.railway.app/project');
+      final url = Uri.parse('http://localhost:3000/project');
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final List<dynamic> projectList = json.decode(response.body);
@@ -110,9 +85,7 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
     // ... (código sem alteração)
     var projectMap = <String, String>{};
     for (var project in array) {
-      if (project is Map &&
-          project.containsKey('nome') &&
-          project.containsKey('_id')) {
+      if (project is Map && project.containsKey('nome') && project.containsKey('_id')) {
         projectMap[project["nome"]] = project["_id"];
       }
     }
@@ -127,8 +100,7 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
       return;
     }
     try {
-      final url = Uri.parse(
-          'https://chronos-production-f584.up.railway.app/project/$selectedProjectId/report');
+      final url = Uri.parse('http://localhost:3000/project/$selectedProjectId/report');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -141,9 +113,8 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
           // *** ALTERAÇÃO 3: Corrigir a sintaxe para pegar a inicial ***
           final String inicial = nome.isNotEmpty ? nome[0].toUpperCase() : '?';
           final int taskCount = (colab['count'] ?? 0).toInt();
-
-          return Colaborador(
-              nome: nome, inicial: inicial, taskCount: taskCount);
+          
+          return Colaborador(nome: nome, inicial: inicial, taskCount: taskCount);
         }).toList();
 
         // Agrupar todas as atualizações de estado em um único setState
@@ -152,33 +123,25 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
           membrosEquipe = (reportData["numberOfMembers"] ?? 0).toInt();
           totalTarefas = (reportData["numberOfTasks"] ?? 0).toInt();
           diasRestantes = (reportData["daysRemaining"] ?? 0).toInt();
-
+          
           // Atualiza dados dos gráficos
-          statusData["Completas"] =
-              (reportData['completedTasks'] ?? 0).toDouble();
-          statusData["Pendentes"] =
-              (reportData['pendingTasks'] ?? 0).toDouble();
+          statusData["Completas"] = (reportData['completedTasks'] ?? 0).toDouble();
+          statusData["Pendentes"] = (reportData['pendingTasks'] ?? 0).toDouble();
 
-          taskData["A"] =
-              (reportData['tasksByComplexity']['A'] ?? 0).toDouble();
-          taskData["B"] =
-              (reportData['tasksByComplexity']['B'] ?? 0).toDouble();
-          taskData["C"] =
-              (reportData['tasksByComplexity']['C'] ?? 0).toDouble();
-          taskData["D"] =
-              (reportData['tasksByComplexity']['D'] ?? 0).toDouble();
+          taskData["A"] = (reportData['tasksByComplexity']['A'] ?? 0).toDouble();
+          taskData["B"] = (reportData['tasksByComplexity']['B'] ?? 0).toDouble();
+          taskData["C"] = (reportData['tasksByComplexity']['C'] ?? 0).toDouble();
+          taskData["D"] = (reportData['tasksByComplexity']['D'] ?? 0).toDouble();
 
-          priorityData['Baixa'] =
-              (reportData['tasksByPriority']['Baixa'] ?? 0).toDouble();
-          priorityData['Média'] =
-              (reportData['tasksByPriority']['Média'] ?? 0).toDouble();
-          priorityData['Alta'] =
-              (reportData['tasksByPriority']['Alta'] ?? 0).toDouble();
+          priorityData['Baixa'] = (reportData['tasksByPriority']['Baixa'] ?? 0).toDouble();
+          priorityData['Média'] = (reportData['tasksByPriority']['Média'] ?? 0).toDouble();
+          priorityData['Alta'] = (reportData['tasksByPriority']['Alta'] ?? 0).toDouble();
 
           // *** ALTERAÇÃO 4: Limpar a lista antiga e adicionar os novos colaboradores ***
           colaboradores.clear();
           colaboradores.addAll(newColaboradores);
         });
+
       } else {
         print('Erro ao buscar relatório: ${response.statusCode}');
       }
@@ -188,7 +151,7 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
   }
 
   // --- MÉTODO BUILD E WIDGETS AUXILIARES ---
-
+  
   @override
   Widget build(BuildContext context) {
     // ... (código sem alteração, apenas os gráficos comentados foram removidos para limpeza)
@@ -230,7 +193,7 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
 
   // O restante do código (widgets de build e funções auxiliares) permanece o mesmo.
   // Apenas o _buildCollaboratorsList agora irá renderizar a lista dinâmica corretamente.
-
+  
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -291,8 +254,7 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildKpiItem(
-                membrosEquipe?.toString() ?? "-", "Membros na Equipe"),
+            _buildKpiItem(membrosEquipe?.toString() ?? "-", "Membros na Equipe"),
             _buildKpiItem(totalTarefas?.toString() ?? '-', "Total de Tarefas"),
             _buildKpiItem(
                 diasRestantes != null
@@ -330,7 +292,7 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
               Expanded(
                   child: BarChart(BarChartData(
                       alignment: BarChartAlignment.spaceAround,
-                      maxY: 30,
+                      maxY: 100,
                       titlesData: FlTitlesData(
                           show: true,
                           bottomTitles: AxisTitles(
@@ -342,7 +304,7 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
                               sideTitles: SideTitles(
                                   showTitles: true,
                                   reservedSize: 40,
-                                  interval: 10)),
+                                  interval: 25)),
                           topTitles: const AxisTitles(
                               sideTitles: SideTitles(showTitles: false)),
                           rightTitles: const AxisTitles(
@@ -385,8 +347,7 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildIndicator(
-                          color: statusColors[0], text: 'Completas'),
+                      _buildIndicator(color: statusColors[0], text: 'Completas'),
                       const SizedBox(height: 8),
                       _buildIndicator(color: statusColors[1], text: 'Pendentes')
                     ]))
@@ -417,7 +378,7 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
               Expanded(
                   child: BarChart(BarChartData(
                       alignment: BarChartAlignment.spaceAround,
-                      maxY: 30,
+                      maxY: 100,
                       titlesData: FlTitlesData(
                           show: true,
                           bottomTitles: AxisTitles(
@@ -429,7 +390,7 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
                               sideTitles: SideTitles(
                                   showTitles: true,
                                   reservedSize: 40,
-                                  interval: 10)),
+                                  interval: 25)),
                           topTitles: const AxisTitles(
                               sideTitles: SideTitles(showTitles: false)),
                           rightTitles: const AxisTitles(
@@ -439,7 +400,7 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
                       barGroups: _generatePriorityBarGroups())))
             ]));
   }
-
+  
   Widget _buildCollaboratorsList() {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -460,39 +421,46 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               // Agora este map funciona com a lista 'colaboradores' dinâmica
-              ...colaboradores.map((colab) => ListTile(
-                  leading: CircleAvatar(child: Text(colab.inicial)),
-                  title: Text(colab.nome,
-                      style: const TextStyle(fontWeight: FontWeight.w500)),
-                  trailing: Chip(
-                      label: Text(colab.taskCount.toString(),
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
-                      backgroundColor: Colors.grey.shade200,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2))))
+              ...colaboradores
+                  .map((colab) => ListTile(
+                      leading: CircleAvatar(child: Text(colab.inicial)),
+                      title: Text(colab.nome,
+                          style: const TextStyle(fontWeight: FontWeight.w500)),
+                      trailing: Chip(
+                          label: Text(colab.taskCount.toString(),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          backgroundColor: Colors.grey.shade200,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2))))
+                  
             ])));
   }
 
-  Widget _buildKpiItem(String value, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // A linha duplicada foi removida daqui.
-        Text(
-          value,
-          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
-        ),
-      ],
-    );
-  }
+Widget _buildKpiItem(String value, String label) {
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      // A linha duplicada foi removida daqui.
+      Text(
+        value,
+        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 4),
+      Text(
+        label,
+        style: const TextStyle(fontSize: 14, color: Colors.grey),
+      ),
+    ],
+  );
+}
 
   List<BarChartGroupData> _generateComplexityBarGroups() {
-    return taskData.entries.toList().asMap().entries.map((entry) {
+    return taskData.entries
+        .toList()
+        .asMap()
+        .entries
+        .map((entry) {
       final int index = entry.key;
       final MapEntry<String, double> data = entry.value;
       return BarChartGroupData(x: index, barRods: [
@@ -507,25 +475,15 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
   }
 
   Widget _getComplexityBottomTitles(double value, TitleMeta meta) {
-    const style = TextStyle(
-        color: Colors.black54, fontWeight: FontWeight.bold, fontSize: 14);
+    const style =
+        TextStyle(color: Colors.black54, fontWeight: FontWeight.bold, fontSize: 14);
     Widget text;
     switch (value.toInt()) {
-      case 0:
-        text = const Text('A', style: style);
-        break;
-      case 1:
-        text = const Text('B', style: style);
-        break;
-      case 2:
-        text = const Text('C', style: style);
-        break;
-      case 3:
-        text = const Text('D', style: style);
-        break;
-      default:
-        text = const Text('', style: style);
-        break;
+      case 0: text = const Text('A', style: style); break;
+      case 1: text = const Text('B', style: style); break;
+      case 2: text = const Text('C', style: style); break;
+      case 3: text = const Text('D', style: style); break;
+      default: text = const Text('', style: style); break;
     }
     return SideTitleWidget(
       space: 10,
@@ -535,7 +493,11 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
   }
 
   List<BarChartGroupData> _generatePriorityBarGroups() {
-    return priorityData.entries.toList().asMap().entries.map((entry) {
+    return priorityData.entries
+        .toList()
+        .asMap()
+        .entries
+        .map((entry) {
       final int index = entry.key;
       final MapEntry<String, double> data = entry.value;
       return BarChartGroupData(x: index, barRods: [
@@ -550,22 +512,14 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
   }
 
   Widget _getPriorityBottomTitles(double value, TitleMeta meta) {
-    const style = TextStyle(
-        color: Colors.black54, fontWeight: FontWeight.bold, fontSize: 14);
+    const style =
+        TextStyle(color: Colors.black54, fontWeight: FontWeight.bold, fontSize: 14);
     Widget text;
     switch (value.toInt()) {
-      case 0:
-        text = const Text('Baixa', style: style);
-        break;
-      case 1:
-        text = const Text('Média', style: style);
-        break;
-      case 2:
-        text = const Text('Alta', style: style);
-        break;
-      default:
-        text = const Text('', style: style);
-        break;
+      case 0: text = const Text('Baixa', style: style); break;
+      case 1: text = const Text('Média', style: style); break;
+      case 2: text = const Text('Alta', style: style); break;
+      default: text = const Text('', style: style); break;
     }
     return SideTitleWidget(
       space: 10,
@@ -575,7 +529,11 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
   }
 
   List<PieChartSectionData> _buildPieChartSections() {
-    return statusData.entries.toList().asMap().entries.map((entry) {
+    return statusData.entries
+        .toList()
+        .asMap()
+        .entries
+        .map((entry) {
       final int index = entry.key;
       final MapEntry<String, double> data = entry.value;
       return PieChartSectionData(

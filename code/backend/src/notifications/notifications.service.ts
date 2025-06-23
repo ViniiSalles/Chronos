@@ -39,7 +39,7 @@ export class NotificationService {
           ? new Types.ObjectId(dto.relatedToId)
           : undefined,
         relatedToModel: dto.relatedToModel,
-        read: dto.read ?? false, 
+        read: dto.read ?? false, // Padrão para não lida
       });
 
       const savedNotification = await newNotification.save();
@@ -49,11 +49,11 @@ export class NotificationService {
       return savedNotification;
     } catch (error) {
       this.logger.error(
-        `Erro ao criar notificação para ${dto.recipient}: ${error.message}`,
+        `Erro ao criar notificação: ${error.message}`,
         error.stack,
       );
       throw new BadRequestException(
-        `Falha ao criar notificação : ${error.message}`,
+        `Falha ao criar notificação: ${error.message}`,
       );
     }
   }

@@ -1,9 +1,9 @@
 import 'package:code/pages/web/create_meeting_page.dart';
-import 'package:code/services/task_service.dart';
+import 'package:code/servicesMobile/task_service.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:code/common/constants/app_colors.dart';
-import 'package:code/services/meeting_service.dart';
+import 'package:code/servicesMobile/meeting_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 

@@ -48,7 +48,7 @@ class AppNotification {
 class NotificationService {
   static const String _notificationsEndpoint = '/notifications';
   static const String _baseUrl =
-      'https://chronos-production-f584.up.railway.app'; // Sua URL base do backend
+      'http://localhost:3000'; // Sua URL base do backend
 
   static Future<String?> _getToken() async {
     User? user = FirebaseAuth.instance.currentUser;

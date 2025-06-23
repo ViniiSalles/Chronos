@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:code/services/kanban_service.dart' as kanban_models;
+import 'package:code/servicesMobile/kanban_service.dart' as kanban_models;
 import 'package:code/common/constants/app_colors.dart';
 import 'package:intl/intl.dart';
 

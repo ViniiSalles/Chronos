@@ -23,8 +23,7 @@ class UserService {
       return null;
     }
 
-    Uri url =
-        Uri.parse('https://chronos-production-f584.up.railway.app/users/me');
+    Uri url = Uri.parse('http://10.0.2.2/users/me');
 
     try {
       final response = await http.get(url, headers: {

@@ -1,5 +1,5 @@
 ### Criar uma nova tarefa
-POST https://chronos-production-f584.up.railway.app/tasks
+POST http://localhost:3000/tasks
 Content-Type: application/json
 
 {
@@ -18,22 +18,17 @@ Content-Type: application/json
 ###
 
 ### Buscar todas as tarefas
-GET https://chronos-production-f584.up.railway.app/tasks
-
-###
-
-### Buscar tarefas concluidas
-GET https://chronos-production-f584.up.railway.app/tasks/status/684733564a55c9677b4e88b5
+GET http://localhost:3000/tasks
 
 ###
 
 ### Buscar uma tarefa por ID
-GET https://chronos-production-f584.up.railway.app/tasks/6855d9ea9ea6c0ed206bf6fb 
+GET http://localhost:3000/tasks/6844d76050e31787acb97ad8
 
 ###
 
 ### Atualizar uma tarefa
-PATCH https://chronos-production-f584.up.railway.app/tasks/6835cc89095b68417b6008e2
+PATCH http://localhost:3000/tasks/6835cc89095b68417b6008e2
 Content-Type: application/json
 
 {
@@ -43,10 +38,10 @@ Content-Type: application/json
 ###
 
 ### Remover uma tarefa
-DELETE https://chronos-production-f584.up.railway.app/tasks/{{task_id}}
+DELETE http://localhost:3000/tasks/{{task_id}}
 
 ### Função para completar as tarefas
-PATCH https://chronos-production-f584.up.railway.app/tasks/682f868f3aca184d33e4c6a8/complete
+PATCH http://localhost:3000/tasks/682f868f3aca184d33e4c6a8/complete
 Content-Type: application/json
 
 {
@@ -56,20 +51,20 @@ Content-Type: application/json
 
 
 ### Get tasks of user
-GET https://chronos-production-f584.up.railway.app/tasks/user/68120b9e27268e6965f0714a
+GET http://localhost:3000/tasks/user/68120b9e27268e6965f0714a
 
 ###
 ### Get Brundown of project
-GET https://chronos-production-f584.up.railway.app/tasks/burndown/6810d7b6bda0b83953c0261f?start=2025-04-01
+GET http://localhost:3000/tasks/burndown/6810d7b6bda0b83953c0261f?start=2025-04-01
 
 ### Get Projection of project
-GET https://chronos-production-f584.up.railway.app/tasks/projection/6810d7b6bda0b83953c0261f?start=2025-05-01
+GET http://localhost:3000/tasks/projection/6810d7b6bda0b83953c0261f?start=2025-05-01
 
 ### Obter recomendações de usuários para nova tarefa
-GET https://chronos-production-f584.up.railway.app/tasks/recommendations?projeto=682dd692d9db5342c92b58db&complexidade=C&tarefasAnteriores=682de75a55615b677d704c09&tarefasAnteriores=682de9bc55615b677d704c11
+GET http://localhost:3000/tasks/recommendations?projeto=682dd692d9db5342c92b58db&complexidade=C&tarefasAnteriores=682de75a55615b677d704c09&tarefasAnteriores=682de9bc55615b677d704c11
 
 ### Criar um relatório provisório de completar tarefa
-PATCH https://chronos-production-f584.up.railway.app/tasks/682f31f55673db5f9f02ac11/review/6823804ed7aa7e4e1e34de80
+PATCH http://localhost:3000/tasks/682f31f55673db5f9f02ac11/review/6823804ed7aa7e4e1e34de80
 Content-Type: application/json
 
 {

@@ -53,10 +53,6 @@ class _TaskEditState extends State<TaskEdit> {
   @override
   void initState() {
     super.initState();
-
-    print("------------------tasksUsuarios");
-    print(widget.task);
-
     fetchUsers();
     setTasksInArray();
 
@@ -78,8 +74,7 @@ class _TaskEditState extends State<TaskEdit> {
   }
 
   void fetchUsers() async {
-    final url = Uri.parse(
-        'https://chronos-production-f584.up.railway.app/project/${widget.idProjeto}');
+    final url = Uri.parse('http://10.0.2.2:3000/project/${widget.idProjeto}');
 
     final response = await http.get(url);
 
@@ -108,8 +103,7 @@ class _TaskEditState extends State<TaskEdit> {
   }
 
   void setTask() async {
-    final url = Uri.parse(
-        'https://chronos-production-f584.up.railway.app/tasks/${widget.task["_id"]}');
+    final url = Uri.parse('http://10.0.2.2:3000/tasks/${widget.task["_id"]}');
 
     print(_selecionadas);
 
@@ -131,6 +125,7 @@ class _TaskEditState extends State<TaskEdit> {
             : null,
         "atribuicoes": [_responsavelSelecionado],
         "tarefasAnteriores": _selecionadas
+
       }),
     );
 
@@ -390,9 +385,7 @@ class _TaskEditState extends State<TaskEdit> {
                     SizedBox(
                       width: 150,
                       child: DropdownButtonFormField<String>(
-                        value: prioridade.contains(widget.task["prioridade"])
-                            ? widget.task["prioridade"]
-                            : null,
+                        value: widget.task["prioridade"],
                         decoration: _inputDecoration('Prioridade').copyWith(
                           fillColor: Colors.grey[100],
                           filled: true,
@@ -463,7 +456,7 @@ class _TaskEditState extends State<TaskEdit> {
                     ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          setTask();
+                           setTask();
                           Navigator.pop(context);
                         }
                       },

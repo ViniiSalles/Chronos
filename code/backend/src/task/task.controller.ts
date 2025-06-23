@@ -18,11 +18,10 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { Complexidade } from 'src/types/types';
 import { FirebaseAuthGuard } from 'auth/firebase-auth.guard';
 import { CompleteTaskDto } from './dto/complete-task.dto';
-import { EvaluateTaskDto } from './dto/evaluate-task.dto';
 
 @Controller('tasks')
 export class TaskController {
-  constructor(private readonly taskService: TaskService) { }
+  constructor(private readonly taskService: TaskService) {}
 
   @Get('my-unacknowledged') // NOVO ENDPOINT
   @UseGuards(FirebaseAuthGuard) // Protege o endpoint com o guard de autenticação
@@ -171,24 +170,5 @@ export class TaskController {
     }
     // A chamada ao service incluirá o ID da tarefa e o ID do usuário que está confirmando
     return this.taskService.acknowledgeTask(taskId, userId.toString());
-  }
-
-  @Post('evaluate')
-  @UseGuards(FirebaseAuthGuard)
-  async evaluate(@Body() evaluateTaskDto: EvaluateTaskDto, @Req() req) {
-    const reviewerId = req.user.uid; // ID do gerente que está avaliando
-    return this.taskService.evaluate(evaluateTaskDto, reviewerId);
-  }
-
-  @Get('completed/:projectId')
-  @UseGuards(FirebaseAuthGuard)
-  async getCompletedTasks(@Param('projectId') projectId: string) {
-    return this.taskService.getCompletedTasks(projectId);
-  }
-
-  @Get('status/:projectId')
-  @UseGuards(FirebaseAuthGuard)
-  async findDoneTasks(@Param('projectId') projectId: string) {
-    return this.taskService.findDoneTasks(projectId);
   }
 }

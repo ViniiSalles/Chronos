@@ -1,5 +1,5 @@
 ### Criar usuário
-POST https://chronos-production-f584.up.railway.app/users
+POST http://localhost:3000/users
 Content-Type: application/json
 
 {
@@ -12,13 +12,13 @@ Content-Type: application/json
 }
 
 ### Buscar todos os usuários
-GET https://chronos-production-f584.up.railway.app/users
+GET http://localhost:3000/users
 
 ### Buscar usuário por ID
-GET https://chronos-production-f584.up.railway.app/users/6823804ed7aa7e4e1e34de80
+GET http://localhost:3000/users/6823804ed7aa7e4e1e34de80
 
 ### Atualizar usuário
-PATCH https://chronos-production-f584.up.railway.app/users/6812687a03f3a271c0b95dec
+PATCH http://localhost:3000/users/6812687a03f3a271c0b95dec
 Content-Type: application/json
 
 {
@@ -29,7 +29,7 @@ Content-Type: application/json
 
 ### Associar usuário ao projeto
 # Substitua USER_ID e PROJECT_ID pelos IDs reais retornados das requisições acima
-POST https://chronos-production-f584.up.railway.app/users/684047d3fbea575cc759e10e/assign-to-project/68404c65fbea575cc759e16e
+POST http://localhost:3000/users/684047d3fbea575cc759e10e/assign-to-project/68404c65fbea575cc759e16e
 Content-Type: application/json
 
 {
@@ -37,4 +37,4 @@ Content-Type: application/json
 }
 
 ### Remover usuário
-DELETE https://chronos-production-f584.up.railway.app/users/{{userId}}
+DELETE http://localhost:3000/users/{{userId}}

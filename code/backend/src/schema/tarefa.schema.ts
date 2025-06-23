@@ -1,9 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { Complexidade } from 'src/types/types';
 import { v4 as uuidv4 } from 'uuid';
-import { Complexidade } from '../types/types'; // Supondo que o enum Complexidade esteja em types.ts
 
-// O nome do tipo de documento também foi atualizado para TaskDocument
 export type TaskDocument = Task & Document;
 
 @Schema({ timestamps: true })
@@ -35,6 +34,8 @@ export class Task {
   @Prop({ enum: Complexidade, required: true })
   complexidade: Complexidade;
 
+  // Sua declaração atual já é a forma correta de ter apenas o ID do projeto.
+  // 'projeto' é um ObjectId que faz referência ao documento 'Project'.
   @Prop({ type: Types.ObjectId, ref: 'Project', required: true })
   projeto: Types.ObjectId;
 
@@ -44,21 +45,21 @@ export class Task {
   @Prop({ type: Types.ObjectId, ref: 'User' })
   aprovadaPor?: Types.ObjectId;
 
-  // Corresponde a 'responsaveis' do schema anterior, agora como 'atribuicoes'
   @Prop([{ type: Types.ObjectId, ref: 'User' }])
   atribuicoes?: Types.ObjectId[];
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'Task' }], default: [] })
   tarefasAnteriores: Types.ObjectId[];
 
-  // Corresponde a 'avaliacao' do schema anterior, agora como 'avaliacaoId'
-  @Prop({ type: Types.ObjectId, ref: 'AvaliacaoTask', default: null }) // Referenciando o schema de avaliação
+  @Prop({ type: Types.ObjectId, ref: 'TaskReview', default: null })
   avaliacaoId?: Types.ObjectId;
 
-  @Prop({ type: String, required: true, default: 'todo' })
+  // NOVO CAMPO: ID da coluna Kanban à qual a tarefa pertence
+  @Prop({ type: String, required: true, default: 'todo' }) // ID da coluna (ex: "todo", "in-progress", "custom-column-id")
   kanbanColumnId: string;
 
-  @Prop({ type: Number, required: true, default: 0 })
+  // NOVO CAMPO: Ordem da tarefa dentro da coluna Kanban
+  @Prop({ required: true, default: 0 })
   orderInColumn: number;
 
   @Prop({ default: false })

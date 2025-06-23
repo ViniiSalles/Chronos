@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:code/common/constants/app_colors.dart';
-import 'package:code/services/task_service.dart';
+import 'package:code/servicesMobile/task_service.dart';
 
 class TaskStatusModal extends StatelessWidget {
   final Task task;

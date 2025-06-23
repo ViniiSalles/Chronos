@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:code/services/project_service.dart';
+import 'package:code/servicesMobile/project_service.dart';
 import 'package:code/common/constants/app_colors.dart';
 
 class ProjectEditModal extends StatefulWidget {

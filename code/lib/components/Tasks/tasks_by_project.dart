@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:code/components/Tasks/task_card.dart';
 import 'package:code/components/Tasks/task_details.dart';
-import 'package:code/services/task_service.dart';
+import 'package:code/servicesMobile/task_service.dart';
 
 class ProjectTask extends StatefulWidget {
   final String projectName; // Nome do projeto
@@ -29,15 +29,6 @@ class _ProjectTaskState extends State<ProjectTask> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    // Coloque aqui o código que deve ser executado ao carregar o arquivo/widget
-    // Por exemplo, você pode chamar widget.fetchData se necessário:
-    print("----------------------tasks:");
-    print(widget.tasks);
-  }
-
-  @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 600, // Define uma altura fixa para o GridView
@@ -60,8 +51,6 @@ class _ProjectTaskState extends State<ProjectTask> {
               );
             },
             child: TaskCard(
-              projectid: widget.projectId,
-              projectTasks: widget.tasks,
               task: Task.fromJson({
                 ...task,
                 // Ensure status is the correct enum or value expected by TaskCard
@@ -84,7 +73,6 @@ class _ProjectTaskState extends State<ProjectTask> {
                   widget.fetchData!({});
                 }
               },
-
             ),
           );
         },

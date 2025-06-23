@@ -1,8 +1,8 @@
 import 'package:code/components/notification/unconfirmed_tasks.dart';
-import 'package:code/services/notification_service.dart';
+import 'package:code/servicesMobile/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:code/common/constants/app_colors.dart';
-import 'package:code/services/task_service.dart';
+import 'package:code/servicesMobile/task_service.dart';
 import 'package:intl/intl.dart';
 import 'package:code/components/notification/notification_list_tab.dart'; // IMPORTANTE: Importe o novo componente
 

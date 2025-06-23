@@ -26,8 +26,8 @@ class _ProjectUserPageState extends State<ProjectUserPage> {
   Map<String, Map<String, String>> availableUsers = {};
 
   Future<void> fetchProjectMembers() async {
-    final url = Uri.parse(
-        'https://chronos-production-f584.up.railway.app/project/${widget.projectId}/members');
+    final url =
+        Uri.parse('http://10.0.2.2:3000/project/${widget.projectId}/members');
 
     try {
       final response = await http.get(url);
@@ -65,8 +65,7 @@ class _ProjectUserPageState extends State<ProjectUserPage> {
   }
 
   Future<void> fetchAvailableUsers() async {
-    final response = await http
-        .get(Uri.parse('https://chronos-production-f584.up.railway.app/users'));
+    final response = await http.get(Uri.parse('http://localhost:3000/users'));
 
     if (response.statusCode == 200) {
       final List<dynamic> users = jsonDecode(response.body);
@@ -93,7 +92,7 @@ class _ProjectUserPageState extends State<ProjectUserPage> {
   void addMember() async {
     if (selectedUserId != null && selectedRole != null) {
       final url = Uri.parse(
-          'https://chronos-production-f584.up.railway.app/users/$selectedUserId/assign-to-project/${widget.projectId}');
+          'http://10.0.2.2:3000/users/$selectedUserId/assign-to-project/${widget.projectId}');
 
       try {
         // MODIFICAR AQUI PARA ENVIAR O "papel" NO CORPO
@@ -161,7 +160,7 @@ class _ProjectUserPageState extends State<ProjectUserPage> {
 
     final response = await http.delete(
       Uri.parse(
-          'https://chronos-production-f584.up.railway.app/project/${widget.projectId}/remove-member/$userId'),
+          'http://localhost:3000/project/${widget.projectId}/remove-member/$userId'),
     );
 
     if (response.statusCode == 200) {

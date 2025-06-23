@@ -9,8 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Classe ApiService Simplificada (coloque em seu arquivo de serviço apropriado depois)
 class ApiService {
-  final String _baseUrl =
-      "https://chronos-production-f584.up.railway.app"; // Seu endereço de backend
+  final String _baseUrl = "http://10.0.2.2:3000"; // Seu endereço de backend
 
   Future<http.Response> patch(
       String endpoint, Map<String, dynamic> data, String? token) async {
@@ -398,8 +397,7 @@ class _ProfilePageState extends State<ProfilePage>
                     children: [
                       CircleAvatar(
                         radius: isMobile ? 50 : 70,
-                        backgroundColor:
-                            theme.colorScheme.surfaceContainerHighest,
+                        backgroundColor: theme.colorScheme.surfaceContainerHighest,
                         backgroundImage: (_currentUser?.photoURL != null &&
                                 _currentUser!.photoURL!.isNotEmpty)
                             ? NetworkImage(_currentUser!.photoURL!)

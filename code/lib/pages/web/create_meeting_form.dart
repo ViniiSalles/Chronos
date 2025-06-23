@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:code/common/constants/app_colors.dart';
 import 'package:intl/intl.dart'; // Para formatar datas
 import 'package:multi_select_flutter/multi_select_flutter.dart'; // Para selecionar participantes
-import 'package:code/services/project_service.dart'; // Para buscar projetos
+import 'package:code/servicesMobile/project_service.dart'; // Para buscar projetos
 // Para o TaskStatus e TaskService (para buscar usuários)
-import 'package:code/services/meeting_service.dart' hide MeetingType; // Para o MeetingService e MeetingType
+import 'package:code/servicesMobile/meeting_service.dart' hide MeetingType; // Para o MeetingService e MeetingType
 
 class CreateMeetingForm extends StatefulWidget {
   final VoidCallback? onSuccess;
