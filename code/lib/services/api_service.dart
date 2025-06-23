@@ -1,12 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ApiService {
-  static const String baseUrl = 'http://10.0.2.2:3000';
+  static const String baseUrl =
+      'https://chronos-production-f584.up.railway.app/';
 
   static Future<Map<String, String>> get _headers async {
     // Aqui você pode adicionar headers como token de autenticação
     return {
+      'Authorization': 'Bearer ${await _getToken()}',
       'Content-Type': 'application/json',
     };
   }
@@ -61,5 +64,14 @@ class ApiService {
       throw Exception('Erro na requisição: ${response.statusCode}');
     }
   }
-  
+
+  static Future<String?> _getToken() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      String? token = await user.getIdToken();
+      return token;
+    }
+    print('ProjectService: Usuário não autenticado.');
+    return null;
+  }
 }

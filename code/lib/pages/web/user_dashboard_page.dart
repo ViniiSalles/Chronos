@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:code/servicesMobile/user_service.dart';
+import 'package:code/services/user_service.dart';
 import 'package:code/models/user_model.dart';
 import 'package:code/common/constants/app_colors.dart'; // Importe suas cores
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:code/common/constants/app_colors.dart';
-import 'package:code/servicesMobile/notification_service.dart'; // Importa o NotificationService
+import 'package:code/services/notification_service.dart'; // Importa o NotificationService
 import 'package:intl/intl.dart'; // Para formatação de data
 
 class NotificationListTab extends StatefulWidget {

@@ -6,7 +6,7 @@ import 'package:code/components/home/sidebar.dart';
 import 'package:code/components/Tasks/task_registration_page.dart';
 import 'package:code/components/Tasks/tasks_by_project.dart'; // Presumindo que este é o widget ProjectTask
 import 'package:code/components/search_filter_card.dart';
-import 'package:code/servicesMobile/project_service.dart'; // Importa o ProjectService e a classe Project
+import 'package:code/services/project_service.dart'; // Importa o ProjectService e a classe Project
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

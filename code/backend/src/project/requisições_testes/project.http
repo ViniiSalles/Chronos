@@ -1,5 +1,5 @@
 ### Criar projeto
-POST http://localhost:3000/project
+POST https://chronos-production-f584.up.railway.app/project
 Content-Type: application/json
 
 {
@@ -13,17 +13,17 @@ Content-Type: application/json
 ###
 
 ### Listar todos os projetos
-GET http://localhost:3000/project
+GET https://chronos-production-f584.up.railway.app/project
 
 ###
 
 ### Buscar projeto por ID
-GET http://localhost:3000/project/682dd692d9db5342c92b58db
+GET https://chronos-production-f584.up.railway.app/project/682dd692d9db5342c92b58db
 
 ###
 
 ### Atualizar projeto
-PATCH http://localhost:3000/project/6810d6ca94c434a8d673442c
+PATCH https://chronos-production-f584.up.railway.app/project/6810d6ca94c434a8d673442c
 Content-Type: application/json
 
 {
@@ -34,13 +34,13 @@ Content-Type: application/json
 ###
 
 ### Deletar projeto
-DELETE http://localhost:3000/project/6810d6ca94c434a8d673442c
+DELETE https://chronos-production-f584.up.railway.app/project/6810d6ca94c434a8d673442c
 
 ### Listar membros do projeto
-GET http://localhost:3000/project/6823ddb41bd0a8075139a173/members
+GET https://chronos-production-f584.up.railway.app/project/6823ddb41bd0a8075139a173/members
 
 ### Remover membro do projeto
-DELETE http://localhost:3000/project/6823ddb41bd0a8075139a173/remove-member/6823eddda08f4cc221116e92
+DELETE https://chronos-production-f584.up.railway.app/project/6823ddb41bd0a8075139a173/remove-member/6823eddda08f4cc221116e92
 
 ### Obter Relatório do Projeto
-GET http://localhost:3000/project/6846e3531bc4ae937d34c6fa/report
+GET https://chronos-production-f584.up.railway.app/project/6846e3531bc4ae937d34c6fa/report

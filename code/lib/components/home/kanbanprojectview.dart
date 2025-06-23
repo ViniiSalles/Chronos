@@ -3,12 +3,13 @@ import 'package:code/common/constants/app_colors.dart';
 import 'package:code/components/home/kanban_column.dart'; // Este é o widget visual KanbanColumn
 import 'package:code/pages/web/burndown_chart_page.dart';
 import 'package:code/pages/web/project_tasks_overview_page.dart';
-import 'package:code/servicesMobile/kanban_service.dart'
+import 'package:code/services/kanban_service.dart'
     as kanban_models; // Importa os modelos do Kanban com um prefixo
-import 'package:code/servicesMobile/project_service.dart';
+import 'package:code/services/project_service.dart';
 import 'package:code/components/Tasks/task_registration_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:code/servicesMobile/task_service.dart'; // Importe o TaskService para reviewTaskUser
+import 'package:code/services/task_service.dart'; // Importe o TaskService para reviewTaskUser
+import 'package:code/pages/web/task_evaluation_page.dart';
 
 // Componente de diálogo para avaliação de código (mantido igual)
 class CodeReviewDialog extends StatefulWidget {
@@ -172,14 +173,50 @@ class _KanbanProjectViewState extends State<KanbanProjectView> {
   kanban_models.KanbanBoard? _kanbanBoard;
   bool _isLoading = true;
   String? _errorMessage;
-  String? _currentUserId; // Adicionado para passar para as colunas
+  String? _userRole; // Adicionado para armazenar o papel do usuário no projeto
+  bool _isProjectManager =
+      false; // Variável para verificar se é gerente do projeto
 
   @override
   void initState() {
     super.initState();
-    _currentUserId =
-        FirebaseAuth.instance.currentUser?.uid; // Obtém o UID do usuário logado
     _fetchKanbanBoard();
+    _fetchUserRole();
+  }
+
+  Future<void> _fetchUserRole() {
+    return Future.sync(() async {
+      if (widget.projectId.isNotEmpty) {
+        final role =
+            await ProjectService().getMyRoleInProject(widget.projectId);
+        if (mounted) {
+          setState(() {
+            _userRole = role;
+            if (_userRole != null) {
+              // Verifica se o usuário é gerente do projeto ou Scrum Master
+              _isProjectManager =
+                  _userRole == 'Scrum Master' || 'admin' == _userRole;
+            }
+          });
+        }
+      }
+      setState(() {
+        _isLoading = false;
+      });
+    });
+  }
+
+  // Navega para a página de avaliação
+  void _navigateToEvaluationPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TaskEvaluationPage(
+          projectId: widget.projectId,
+          projectName: widget.projectName,
+        ),
+      ),
+    );
   }
 
   Future<void> _fetchKanbanBoard() async {
@@ -273,7 +310,7 @@ class _KanbanProjectViewState extends State<KanbanProjectView> {
       // ou um TaskService.getTasksByIds no frontend.
       // Por agora, se for um Map (subdocumento antigo), pegamos, se for String (ObjectId novo), deixamos "N/A"
       return {"id": taskItem['id'], "name": taskItem['titulo']};
-        }).toList();
+    }).toList();
 
     final List<Map<String, dynamic>> responsaveisFormatados =
         currentProject.users.map((userMap) {
@@ -371,6 +408,13 @@ class _KanbanProjectViewState extends State<KanbanProjectView> {
               );
             },
           ),
+          if (_isProjectManager) // Exibe o botão apenas se for gerente do projeto
+            IconButton(
+              icon:
+                  const Icon(Icons.check_circle, color: AppColors.textPrimary),
+              tooltip: 'Avaliar Entregas',
+              onPressed: _navigateToEvaluationPage,
+            ),
         ],
       ),
       body: _isLoading
@@ -418,8 +462,8 @@ class _KanbanProjectViewState extends State<KanbanProjectView> {
                                   newOrder), // Passa o objeto completo
                           onAddTask: _onAddTask,
                           onReviewCode: _onReviewCode,
-                          onTaskDrop: (kanban_models.KanbanTaskItem task, String newColumnId,
-                              int newOrder) {},
+                          onTaskDrop: (kanban_models.KanbanTaskItem task,
+                              String newColumnId, int newOrder) {},
                           currentUserId: '',
                         );
                       }).toList(),

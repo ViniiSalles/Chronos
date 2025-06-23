@@ -1,19 +1,33 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
+// Renomeando para corresponder ao seu schema, mas mantendo a exportação clara
 export type AvaliacaoTaskDocument = AvaliacaoTask & Document;
 
-@Schema()
+@Schema({ timestamps: true })
 export class AvaliacaoTask {
-  @Prop({ required: false, type: Types.ObjectId, ref: 'Task' }) // CORRIGIDO: Mudar para Types.ObjectId e adicionar ref
-  task_id: Types.ObjectId; // Agora, este campo aceita ObjectId
+  @Prop({ type: Types.ObjectId, ref: 'Tarefa', required: true })
+  task_id: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true }) // Campo user_id_do_avaliado
+  // ID do usuário que executou a tarefa
+  @Prop({ type: Types.ObjectId, ref: 'Usuario', required: true })
   user_id_do_avaliado: Types.ObjectId;
 
-  @Prop({ required: false }) nota: number;
-  @Prop({ required: false }) data_avaliacao: Date;
-  @Prop({ required: false }) gerada_automaticamente: boolean;
-  @Prop({ required: true }) code: string;
+  // CAMPO ADICIONADO: ID do usuário que fez a avaliação (o gerente/admin)
+  @Prop({ type: Types.ObjectId, ref: 'Usuario', required: true })
+  user_id_do_avaliador: Types.ObjectId;
+
+  @Prop({ required: true })
+  nota: number;
+
+  @Prop({ required: false })
+  code: string;
+
+  @Prop({ default: Date.now })
+  data_avaliacao: Date;
+
+  @Prop({ default: false })
+  gerada_automaticamente: boolean;
 }
+
 export const AvaliacaoTaskSchema = SchemaFactory.createForClass(AvaliacaoTask);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:code/common/constants/app_colors.dart';
-import 'package:code/servicesMobile/project_service.dart';
+import 'package:code/services/project_service.dart';
 
 class ProjectRegistrationForm extends StatefulWidget {
   final VoidCallback? onSuccess;

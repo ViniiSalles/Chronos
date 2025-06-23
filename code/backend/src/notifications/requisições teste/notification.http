@@ -1,5 +1,5 @@
 ### Variáveis de Ambiente (opcional, mas recomendado)
-@baseUrl = http://localhost:3000
+@baseUrl = https://chronos-production-f584.up.railway.app
 @token = SoFjPyD2QGaeMFnvO2HawFavPQ9Z2  ### Substitua pelo token JWT de um usuário logado
 
 ###

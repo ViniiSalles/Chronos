@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-
 class ExcludeModal extends StatelessWidget {
   final String itemId;
   final String type;
-  final void Function(Map<String, dynamic> task)? fetchData;
-  const ExcludeModal({super.key, required this.type, required this.itemId, required this.fetchData});
+  const ExcludeModal({super.key, required this.type, required this.itemId,});
 
   
   void excludeTask(BuildContext context, id) async {
-    final url = Uri.parse('http://10.0.2.2:3000/tasks/$id');
+    final url =
+        Uri.parse('https://chronos-production-f584.up.railway.app/tasks/$id');
 
     final response = await http.delete(url);
 
@@ -26,9 +25,6 @@ class ExcludeModal extends StatelessWidget {
               onPressed: () {
                 Navigator.of(context).pop();
                 Navigator.of(context).pop(); 
-                if (fetchData != null) {
-                  fetchData!({});
-                }
               },
               child: const Text('OK'),
             ),
@@ -40,22 +36,21 @@ class ExcludeModal extends StatelessWidget {
       print('Erro ao deletar task: ${response.statusCode}');
     }
   }
-  
 
   @override
   Widget build(BuildContext context) {
-
     Map<String, Map<String, String>> textValues = {
       "Task": {
         "title": "Deseja realmente excluir esta tarefa?",
-        "content": "Essa tarefa será excluida permanentemente, junto a todas as suas informações/relações no sistema. Deseja continuar?"
+        "content":
+            "Essa tarefa será excluida permanentemente, junto a todas as suas informações/relações no sistema. Deseja continuar?"
       },
       "Project": {
         "title": "Deseja realmente excluir este projeto?",
-        "content": "Esse projeto será excluido permanentemente, junto a todas as suas informações/relações no sistema. Deseja continuar?"
+        "content":
+            "Esse projeto será excluido permanentemente, junto a todas as suas informações/relações no sistema. Deseja continuar?"
       },
     };
-
 
     return AlertDialog(
       title: Text(textValues[type]!["title"]!),

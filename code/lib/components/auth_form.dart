@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart'; // 1. Importar SharedPreferences
 
 // Idealmente, mova esta URL para um arquivo de configuração/constantes
-const String backendAuthUrl = 'http://10.0.2.2:3000/auth';
+const String backendAuthUrl =
+    'https://chronos-production-f584.up.railway.app/auth';
 
 enum AuthMode { signUp, signIn }
 
