@@ -146,7 +146,7 @@ class KanbanBoard {
 class KanbanService {
   static const String _kanbanEndpoint = '/kanban';
   static const String _baseUrl =
-      'http://localhost:3000'; // Sua URL base do backend
+      'https://chronos-production-f584.up.railway.app'; // Sua URL base do backend
 
   static Future<String?> _getToken() async {
     User? user = FirebaseAuth.instance.currentUser;

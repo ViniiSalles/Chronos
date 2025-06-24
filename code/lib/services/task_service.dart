@@ -44,7 +44,8 @@ class Projeto {
   final DateTime? dataFim;
   final String? status;
   final List<String> tasks; // IDs de tarefa
-  final List<Map<String, dynamic>> users; // Continua Map<String, dynamic> para users
+  final List<Map<String, dynamic>>
+      users; // Continua Map<String, dynamic> para users
 
   Projeto({
     required this.id,
@@ -138,8 +139,7 @@ class Task {
             : null,
         projectId: json['projeto'] is String
             ? json['projeto']?.toString()
-            : (json['projeto'] as Map<String, dynamic>?)?['_id']
-                ?.toString(),
+            : (json['projeto'] as Map<String, dynamic>?)?['_id']?.toString(),
         projeto: json['projeto'] is Map<String, dynamic>
             ? Projeto.fromJson(json['projeto'] as Map<String, dynamic>)
             : null,
@@ -157,6 +157,7 @@ class Task {
 
   Map<String, dynamic> toJson() {
     return {
+      '_id': id,
       'titulo': title,
       'descricao': description,
       'prioridade': priority.toString(),
@@ -232,7 +233,8 @@ class BurndownDataPoint {
 // Service para interagir com a API de Tarefas
 class TaskService {
   static const String _tasksEndpoint = '/tasks';
-  static const String _baseUrl = 'http://10.0.2.2:3000';
+  static const String _baseUrl =
+      'https://chronos-production-f584.up.railway.app';
 
   static Future<String?> _getToken() async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -510,94 +512,94 @@ class TaskService {
         return false;
       }
     } catch (e) {
-    print('TaskService (completeTask): Exceção ao completar tarefa: $e');
-    throw Exception('Exceção ao completar tarefa: ${e.toString()}');
+      print('TaskService (completeTask): Exceção ao completar tarefa: $e');
+      throw Exception('Exceção ao completar tarefa: ${e.toString()}');
+    }
   }
-}
 
 // Busca dados para o gráfico de Burndown
-static Future<List<BurndownDataPoint>> getBurndownData(
-    String projectId, DateTime startDateQuery) async {
-  final token = await _getToken();
-  if (token == null) {
-    throw Exception(
-        'Token de autenticação não encontrado para dados do Burndown.');
-  }
-  final String startDateString =
-      '${startDateQuery.year.toString().padLeft(4, '0')}-'
-      '${startDateQuery.month.toString().padLeft(2, '0')}-'
-      '${startDateQuery.day.toString().padLeft(2, '0')}';
-  final Uri url = Uri.parse(
-      '$_baseUrl$_tasksEndpoint/burndown/$projectId?start=$startDateString');
-  try {
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> body = json.decode(utf8.decode(response.bodyBytes));
-      return body
-          .asMap()
-          .entries
-          .map((entry) => BurndownDataPoint.fromJson(
-              entry.value as Map<String, dynamic>, entry.key))
-          .toList();
-    } else {
-      print(
-          'TaskService (getBurndownData): Erro HTTP ${response.statusCode} - ${response.body}');
+  static Future<List<BurndownDataPoint>> getBurndownData(
+      String projectId, DateTime startDateQuery) async {
+    final token = await _getToken();
+    if (token == null) {
       throw Exception(
-          'Falha ao carregar dados do burndown. Status: ${response.statusCode}');
+          'Token de autenticação não encontrado para dados do Burndown.');
     }
-  } catch (e) {
-    print('TaskService (getBurndownData): Exceção - $e');
-    throw Exception('Exceção ao carregar dados do burndown: ${e.toString()}');
+    final String startDateString =
+        '${startDateQuery.year.toString().padLeft(4, '0')}-'
+        '${startDateQuery.month.toString().padLeft(2, '0')}-'
+        '${startDateQuery.day.toString().padLeft(2, '0')}';
+    final Uri url = Uri.parse(
+        '$_baseUrl$_tasksEndpoint/burndown/$projectId?start=$startDateString');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> body = json.decode(utf8.decode(response.bodyBytes));
+        return body
+            .asMap()
+            .entries
+            .map((entry) => BurndownDataPoint.fromJson(
+                entry.value as Map<String, dynamic>, entry.key))
+            .toList();
+      } else {
+        print(
+            'TaskService (getBurndownData): Erro HTTP ${response.statusCode} - ${response.body}');
+        throw Exception(
+            'Falha ao carregar dados do burndown. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('TaskService (getBurndownData): Exceção - $e');
+      throw Exception('Exceção ao carregar dados do burndown: ${e.toString()}');
+    }
   }
-}
 
 // Busca dados para o gráfico de Projeção
   static Future<List<BurndownDataPoint>> getProjectionData(
-    String projectId, DateTime startDateQuery) async {
-  final token = await _getToken();
-  if (token == null) {
-    throw Exception(
-        'Token de autenticação não encontrado para dados de Projeção.');
-  }
-  final String startDateString =
-      '${startDateQuery.year.toString().padLeft(4, '0')}-'
-      '${startDateQuery.month.toString().padLeft(2, '0')}-'
-      '${startDateQuery.day.toString().padLeft(2, '0')}';
-  final Uri url = Uri.parse(
-      '$_baseUrl$_tasksEndpoint/projection/$projectId?start=$startDateString');
-  try {
-    final response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final List<dynamic> body = json.decode(utf8.decode(response.bodyBytes));
-      return body
-          .asMap()
-          .entries
-          .map((entry) => BurndownDataPoint.fromJson(
-              entry.value as Map<String, dynamic>, entry.key))
-          .toList();
-    } else {
-      print(
-          'TaskService (getProjectionData): Erro HTTP ${response.statusCode} - ${response.body}');
+      String projectId, DateTime startDateQuery) async {
+    final token = await _getToken();
+    if (token == null) {
       throw Exception(
-          'Falha ao carregar dados de projeção. Status: ${response.statusCode}');
+          'Token de autenticação não encontrado para dados de Projeção.');
     }
-  } catch (e) {
-    print('TaskService (getProjectionData): Exceção - $e');
-    throw Exception('Exceção ao carregar dados de projeção: ${e.toString()}');
+    final String startDateString =
+        '${startDateQuery.year.toString().padLeft(4, '0')}-'
+        '${startDateQuery.month.toString().padLeft(2, '0')}-'
+        '${startDateQuery.day.toString().padLeft(2, '0')}';
+    final Uri url = Uri.parse(
+        '$_baseUrl$_tasksEndpoint/projection/$projectId?start=$startDateString');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> body = json.decode(utf8.decode(response.bodyBytes));
+        return body
+            .asMap()
+            .entries
+            .map((entry) => BurndownDataPoint.fromJson(
+                entry.value as Map<String, dynamic>, entry.key))
+            .toList();
+      } else {
+        print(
+            'TaskService (getProjectionData): Erro HTTP ${response.statusCode} - ${response.body}');
+        throw Exception(
+            'Falha ao carregar dados de projeção. Status: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('TaskService (getProjectionData): Exceção - $e');
+      throw Exception('Exceção ao carregar dados de projeção: ${e.toString()}');
+    }
   }
-}
 
   // Buscar todas as tarefas atribuídas ao usuário logado (para a Agenda)
   static Future<List<Task>> findAssignedTasksForUser() async {
@@ -606,9 +608,9 @@ static Future<List<BurndownDataPoint>> getBurndownData(
       print('TaskService (findAssignedTasksForUser): Token não encontrado.');
       return [];
     }
-    
+
     // O endpoint dedicado que retorna apenas as tarefas do usuário logado.
-    final Uri url = Uri.parse('$_baseUrl$_tasksEndpoint/my-assigned'); 
+    final Uri url = Uri.parse('$_baseUrl$_tasksEndpoint/my-assigned');
 
     try {
       final response = await http.get(
@@ -623,7 +625,8 @@ static Future<List<BurndownDataPoint>> getBurndownData(
             json.decode(utf8.decode(response.bodyBytes));
         return tasksList.map((taskJson) => Task.fromJson(taskJson)).toList();
       } else {
-        print('TaskService (findAssignedTasksForUser): Erro ao buscar tarefas. Status: ${response.statusCode}');
+        print(
+            'TaskService (findAssignedTasksForUser): Erro ao buscar tarefas. Status: ${response.statusCode}');
         return [];
       }
     } catch (e) {
@@ -631,6 +634,7 @@ static Future<List<BurndownDataPoint>> getBurndownData(
       return [];
     }
   }
+
   /// NOVO MÉTODO: Busca todas as tarefas relacionadas ao usuário logado (criadas, aprovadas ou atribuídas).
   /// Consome o endpoint GET /tasks/user/:userId do backend.
   static Future<List<Task>> getMyTasks() async {
@@ -647,7 +651,8 @@ static Future<List<BurndownDataPoint>> getBurndownData(
     }
     final String userId = currentUser.uid;
 
-    final Uri url = Uri.parse('$_baseUrl$_tasksEndpoint/user/$userId'); // Endpoint no backend: /tasks/user/:userId
+    final Uri url = Uri.parse(
+        '$_baseUrl$_tasksEndpoint/user/$userId'); // Endpoint no backend: /tasks/user/:userId
 
     try {
       final response = await http.get(
@@ -659,11 +664,14 @@ static Future<List<BurndownDataPoint>> getBurndownData(
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> tasksList = json.decode(utf8.decode(response.bodyBytes));
+        final List<dynamic> tasksList =
+            json.decode(utf8.decode(response.bodyBytes));
         return tasksList.map((taskJson) => Task.fromJson(taskJson)).toList();
       } else {
-        print('TaskService (getMyTasks): Erro ao buscar minhas tarefas. Status: ${response.statusCode}, Corpo: ${utf8.decode(response.bodyBytes)}');
-        throw Exception('Falha ao carregar minhas tarefas: ${utf8.decode(response.bodyBytes)}');
+        print(
+            'TaskService (getMyTasks): Erro ao buscar minhas tarefas. Status: ${response.statusCode}, Corpo: ${utf8.decode(response.bodyBytes)}');
+        throw Exception(
+            'Falha ao carregar minhas tarefas: ${utf8.decode(response.bodyBytes)}');
       }
     } catch (e) {
       print('TaskService (getMyTasks): Exceção ao buscar minhas tarefas: $e');
@@ -673,7 +681,6 @@ static Future<List<BurndownDataPoint>> getBurndownData(
 
   /// NOVO MÉTODO: Envia avaliação de código para uma tarefa (frontend).
   static Future<dynamic> reviewTaskUser(
-
       String taskId,
       String assignedUserId,
       String comentario,
@@ -682,11 +689,13 @@ static Future<List<BurndownDataPoint>> getBurndownData(
       String reviewerUserId) async {
     final String? token = await _getToken();
     if (token == null) {
-      print('TaskService (reviewTaskUser): Token de autenticação não encontrado.');
+      print(
+          'TaskService (reviewTaskUser): Token de autenticação não encontrado.');
       throw Exception('Token de autenticação não encontrado.');
     }
 
-    final Uri url = Uri.parse('$_baseUrl$_tasksEndpoint/$taskId/review/$assignedUserId');
+    final Uri url =
+        Uri.parse('$_baseUrl$_tasksEndpoint/$taskId/review/$assignedUserId');
 
     try {
       final response = await http.patch(
@@ -704,19 +713,19 @@ static Future<List<BurndownDataPoint>> getBurndownData(
       );
 
       if (response.statusCode == 200) {
-        print('Avaliação de tarefa $taskId enviada com sucesso! Resposta: ${response.body}');
+        print(
+            'Avaliação de tarefa $taskId enviada com sucesso! Resposta: ${response.body}');
         // Retorna o corpo da resposta ou um valor booleano de sucesso
         return true;
       } else {
-        print('TaskService (reviewTaskUser): Erro ao avaliar tarefa. Status: ${response.statusCode}, Corpo: ${response.body}');
-        throw Exception('Falha ao avaliar tarefa: ${utf8.decode(response.bodyBytes)}');
+        print(
+            'TaskService (reviewTaskUser): Erro ao avaliar tarefa. Status: ${response.statusCode}, Corpo: ${response.body}');
+        throw Exception(
+            'Falha ao avaliar tarefa: ${utf8.decode(response.bodyBytes)}');
       }
     } catch (e) {
       print('TaskService (reviewTaskUser): Exceção ao avaliar tarefa: $e');
       throw Exception('Exceção ao avaliar tarefa: ${e.toString()}');
     }
   }
-
-
-
 }

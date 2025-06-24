@@ -43,10 +43,10 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
     super.initState();
     print(widget.tarefasExistentes);
   }
-  
 
   void sendData() async {
-    final url = Uri.parse('http://10.0.2.2:3000/tasks');
+    final url =
+        Uri.parse('https://chronos-production-f584.up.railway.app/tasks');
     User? user = FirebaseAuth.instance.currentUser;
     final String? token = await user?.getIdToken();
 
@@ -64,7 +64,9 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
         "projeto": widget.id,
         "dataInicio": DateTime.now().toIso8601String(),
         "dataLimite": _dateController.text.isNotEmpty
-            ? DateFormat('dd/MM/yyyy').parse(_dateController.text).toIso8601String()
+            ? DateFormat('dd/MM/yyyy')
+                .parse(_dateController.text)
+                .toIso8601String()
             : null,
         "status": "pending",
         "atribuicoes": [_responsavelSelecionado],
@@ -147,7 +149,8 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
   }
 
   void getRecomendation() async {
-    var url = 'http://10.0.2.2:3000/tasks/recommendations?projeto=${widget.id}';
+    var url =
+        'https://chronos-production-f584.up.railway.app/tasks/recommendations?projeto=${widget.id}';
 
     if (_nivelSelecionado != null) {
       url = '$url&complexidade=$_nivelSelecionado';
@@ -201,28 +204,33 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
         height: 450, // Pode precisar ajustar ou tornar mais dinâmico
         child: Column(
           children: [
-            Expanded( // Para garantir que o SingleChildScrollView use o espaço disponível
+            Expanded(
+              // Para garantir que o SingleChildScrollView use o espaço disponível
               child: SingleChildScrollView(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    SizedBox( // Container para o formulário
+                    SizedBox(
+                      // Container para o formulário
                       width: 500, // Largura explícita para o formulário
                       child: Form(
                         key: _formKey,
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Não terá muito efeito aqui devido ao SingleChildScrollView
+                          mainAxisAlignment: MainAxisAlignment
+                              .spaceBetween, // Não terá muito efeito aqui devido ao SingleChildScrollView
                           children: [
                             /// TÍTULO
                             SizedBox(
-                              width: 500, // Define the width of the TextFormField
+                              width:
+                                  500, // Define the width of the TextFormField
                               child: TextFormField(
                                 controller: _tituloController,
                                 decoration: _inputDecoration('Título da task'),
-                                validator: (value) => value == null || value.isEmpty
-                                    ? 'Informe um título'
-                                    : null,
+                                validator: (value) =>
+                                    value == null || value.isEmpty
+                                        ? 'Informe um título'
+                                        : null,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -232,7 +240,8 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                               children: [
                                 SizedBox(
                                   width: 240,
-                                  child: TextFormField( // Expanded removido pois o SizedBox já define a largura
+                                  child: TextFormField(
+                                    // Expanded removido pois o SizedBox já define a largura
                                     controller: _dateController,
                                     readOnly: true,
                                     decoration: _inputDecoration(
@@ -249,7 +258,8 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                                       if (picked != null) {
                                         setState(() {
                                           _dateController.text =
-                                              DateFormat('dd/MM/yyyy').format(picked);
+                                              DateFormat('dd/MM/yyyy')
+                                                  .format(picked);
                                         });
                                       }
                                     },
@@ -260,17 +270,21 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                                 ),
                                 SizedBox(
                                   width: 240,
-                                  child: MultiSelectDialogField( // Expanded removido
+                                  child: MultiSelectDialogField(
+                                    // Expanded removido
                                     initialValue: _selecionadas,
                                     items: itens,
                                     title: const Text("Tasks dependentes"),
                                     decoration: BoxDecoration(
                                       color: Colors.grey[100],
                                       borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: Colors.blue.shade300),
+                                      border: Border.all(
+                                          color: Colors.blue.shade300),
                                     ),
-                                    buttonText: const Text("Selecionar dependências"),
-                                    buttonIcon: const Icon(Icons.arrow_drop_down),
+                                    buttonText:
+                                        const Text("Selecionar dependências"),
+                                    buttonIcon:
+                                        const Icon(Icons.arrow_drop_down),
                                     onConfirm: (values) {
                                       _selecionadas = values.cast<String>();
                                       _onFieldChanged();
@@ -288,9 +302,10 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                                 controller: _descricaoController,
                                 decoration: _inputDecoration('Descrição'),
                                 maxLines: 4,
-                                validator: (value) => value == null || value.isEmpty
-                                    ? 'Informe a descrição'
-                                    : null,
+                                validator: (value) =>
+                                    value == null || value.isEmpty
+                                        ? 'Informe a descrição'
+                                        : null,
                               ),
                             ),
                             const SizedBox(height: 25),
@@ -300,88 +315,102 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                               children: [
                                 SizedBox(
                                   width: 150,
-                                  child: DropdownButtonFormField<String>( // Expanded removido
+                                  child: DropdownButtonFormField<String>(
+                                    // Expanded removido
                                     value: _prioridadeSelecionada,
                                     decoration: _inputDecoration('Prioridade'),
                                     items: widget.prioridades
-                                        .map((p) =>
-                                            DropdownMenuItem(value: p, child: Text(p)))
+                                        .map((p) => DropdownMenuItem(
+                                            value: p, child: Text(p)))
                                         .toList(),
-                                    onChanged: (value) =>
-                                        setState(() => _prioridadeSelecionada = value),
-                                    validator: (value) =>
-                                        value == null ? 'Selecione a prioridade' : null,
+                                    onChanged: (value) => setState(
+                                        () => _prioridadeSelecionada = value),
+                                    validator: (value) => value == null
+                                        ? 'Selecione a prioridade'
+                                        : null,
                                   ),
                                 ),
                                 const SizedBox(width: 25),
                                 SizedBox(
                                   width: 150,
-                                  child: DropdownButtonFormField<String>( // Expanded removido
+                                  child: DropdownButtonFormField<String>(
+                                    // Expanded removido
                                     value: _nivelSelecionado,
                                     decoration: _inputDecoration('Nível'),
                                     items: widget.niveis
-                                        .map((n) =>
-                                            DropdownMenuItem(value: n, child: Text(n)))
+                                        .map((n) => DropdownMenuItem(
+                                            value: n, child: Text(n)))
                                         .toList(),
                                     onChanged: (value) => {
                                       setState(() => _nivelSelecionado = value),
                                       _onFieldChanged()
                                     },
-                                    validator: (value) =>
-                                        value == null ? 'Selecione o nível' : null,
+                                    validator: (value) => value == null
+                                        ? 'Selecione o nível'
+                                        : null,
                                   ),
                                 ),
                                 const SizedBox(width: 25),
                                 SizedBox(
-                                  width: 148,
+                                  width: 150,
                                   child: DropdownButtonFormField<String>(
-                                    // Expanded removido
+                                    isExpanded: true,
                                     value: _responsavelSelecionado,
-                                    decoration: _inputDecoration('Resp.'),
+                                    decoration: _inputDecoration('Res.'),
                                     items: widget.responsaveis
                                         .map((r) => DropdownMenuItem(
                                               value: r['id'].toString(),
                                               child: Text(r['name'] ?? ''),
                                             ))
                                         .toList(),
-                                    onChanged: (value) =>
-                                        setState(() => _responsavelSelecionado = value),
-                                    validator: (value) =>
-                                        value == null ? 'Selecione o responsável' : null,
+                                    onChanged: (value) => setState(
+                                        () => _responsavelSelecionado = value),
+                                    validator: (value) => value == null
+                                        ? 'Selecione o responsável'
+                                        : null,
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 32), // Espaço no final do formulário
+                            const SizedBox(
+                                height: 32), // Espaço no final do formulário
                           ],
                         ),
                       ),
                     ),
-                    SizedBox( // Container para as recomendações
+                    SizedBox(
+                      // Container para as recomendações
                       width: 500, // Largura explícita para as recomendações
                       child: Container(
-                        margin: const EdgeInsets.only(left: 20), // Reduzida a margem para melhor encaixe ou ajuste conforme necessário
-                        padding: const EdgeInsets.only(top: 8), // Espaço para o título "Recomendações"
+                        margin: const EdgeInsets.only(
+                            left:
+                                20), // Reduzida a margem para melhor encaixe ou ajuste conforme necessário
+                        padding: const EdgeInsets.only(
+                            top: 8), // Espaço para o título "Recomendações"
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
                               'Recomendações de Responsáveis',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                             const SizedBox(height: 8),
                             _recomendacao.isEmpty
                                 ? const Text(
                                     'Nesta area serão exibidos as recomendações de usuarios para associação a task, quanto maior o seu score, maior sua afinidade com a mesma :)')
                                 : SizedBox(
-                                    height: 300, // Defina uma altura fixa para a lista
+                                    height:
+                                        300, // Defina uma altura fixa para a lista
                                     child: ListView.builder(
                                       itemCount: _recomendacao.length,
                                       itemBuilder: (context, index) {
                                         final rec = _recomendacao[index];
                                         return ListTile(
-                                          title: Text(rec['nome'] ?? 'Nome não disponível'),
-                                          subtitle: Text('Score: ${rec['score']}'),
+                                          title: Text(rec['nome'] ??
+                                              'Nome não disponível'),
+                                          subtitle:
+                                              Text('Score: ${rec['score']}'),
                                         );
                                       },
                                     ),
@@ -394,7 +423,8 @@ class _TaskFormDialogState extends State<TaskFormDialog> {
                 ),
               ),
             ),
-            Padding( // Adicionado Padding para os botões
+            Padding(
+              // Adicionado Padding para os botões
               padding: const EdgeInsets.only(top: 16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,

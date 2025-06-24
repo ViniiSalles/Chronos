@@ -12,7 +12,7 @@ import 'package:firebase_auth/firebase_auth.dart'; // Para autenticação Fireba
 class MeetingService {
   static const String _meetingsEndpoint = '/meetings';
   static const String _baseUrl =
-      'http://localhost:3000'; // Sua URL base do backend
+      'https://chronos-production-f584.up.railway.app'; // Sua URL base do backend
 
   // Método auxiliar para obter o token de autenticação Firebase
   static Future<String?> _getToken() async {

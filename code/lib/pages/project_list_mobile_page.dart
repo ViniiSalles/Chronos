@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:code/components/mobile_layout.dart';
 import 'package:code/components/Tasks/project_card.dart' as card;
-import 'package:code/servicesMobile/project_service.dart' as service;
+import 'package:code/services/project_service.dart' as service;
 import 'package:code/components/home/project_edit_modal.dart';
 import 'package:code/components/home/project_delete_modal.dart';
 
