@@ -1,5 +1,9 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { Kafka, Producer, ProducerRecord } from 'kafkajs';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
 
 @Injectable()
 export class ProducerService implements OnModuleInit {

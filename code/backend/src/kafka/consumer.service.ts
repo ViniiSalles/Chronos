@@ -10,6 +10,9 @@ import {
   Kafka,
 } from 'kafkajs';
 import { MyGateway } from 'src/gateway/gateway';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 @Injectable()
 export class ConsumerService implements OnApplicationShutdown, OnModuleInit {
@@ -18,7 +21,7 @@ export class ConsumerService implements OnApplicationShutdown, OnModuleInit {
   });
   private readonly consumers: Consumer[] = [];
 
-  constructor(private readonly gateway: MyGateway) {}
+  constructor(private readonly gateway: MyGateway) { }
 
   async onModuleInit() {
     await this.consume(
