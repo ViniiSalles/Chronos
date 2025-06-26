@@ -1,0 +1,46 @@
+### Criar projeto
+POST https://chronos-production-f584.up.railway.app/project
+Content-Type: application/json
+
+{
+  "nome": "teste",
+  "descricao": "teste",
+  "dataInicio": "2025-05-01T00:00:00.000Z",
+  "data_fim": "2025-12-31T00:00:00.000Z",
+  "status": "ativo"
+}
+
+###
+
+### Listar todos os projetos
+GET https://chronos-production-f584.up.railway.app/project
+
+###
+
+### Buscar projeto por ID
+GET https://chronos-production-f584.up.railway.app/project/682dd692d9db5342c92b58db
+
+###
+
+### Atualizar projeto
+PATCH https://chronos-production-f584.up.railway.app/project/6810d6ca94c434a8d673442c
+Content-Type: application/json
+
+{
+  "descricao": "Sistema atualizado com novas funcionalidades",
+  "status": "em progresso"
+}
+
+###
+
+### Deletar projeto
+DELETE https://chronos-production-f584.up.railway.app/project/6810d6ca94c434a8d673442c
+
+### Listar membros do projeto
+GET https://chronos-production-f584.up.railway.app/project/6823ddb41bd0a8075139a173/members
+
+### Remover membro do projeto
+DELETE https://chronos-production-f584.up.railway.app/project/6823ddb41bd0a8075139a173/remove-member/6823eddda08f4cc221116e92
+
+### Obter Relatório do Projeto
+GET https://chronos-production-f584.up.railway.app/project/6846e3531bc4ae937d34c6fa/report
