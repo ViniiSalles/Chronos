@@ -104,6 +104,7 @@ class ChronosApp extends StatelessWidget {
                   builder = (BuildContext _) => BurndownChartPage(
                         projectId: args['projectId'] as String,
                         queryStartDate: args['queryStartDate'] as DateTime,
+                        queryEndDate: args['queryEndDate'] as DateTime,
                       );
                 } else {
                   builder = (BuildContext _) => const Scaffold(

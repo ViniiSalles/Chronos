@@ -22,7 +22,7 @@ import { EvaluateTaskDto } from './dto/evaluate-task.dto';
 
 @Controller('tasks')
 export class TaskController {
-  constructor(private readonly taskService: TaskService) { }
+  constructor(private readonly taskService: TaskService) {}
 
   @Get('my-unacknowledged') // NOVO ENDPOINT
   @UseGuards(FirebaseAuthGuard) // Protege o endpoint com o guard de autenticação
@@ -131,20 +131,23 @@ export class TaskController {
     );
   }
 
+  // Exemplo: src/tasks/task.controller.ts
   @Get('burndown/:projectId')
   async burndown(
     @Param('projectId') projectId: string,
     @Query('start') start: string,
+    @Query('end') end: string, // ADICIONADO: 'end' na query
   ) {
-    return this.taskService.getBurndown(projectId, start);
+    return this.taskService.getBurndown(projectId, start, end); // Passa para o service
   }
 
   @Get('projection/:projectId')
   async projection(
     @Param('projectId') projectId: string,
     @Query('start') start: string,
+    @Query('end') end: string, // ADICIONADO: 'end' na query
   ) {
-    return this.taskService.getProjection(projectId, start);
+    return this.taskService.getProjection(projectId, start, end); // Passa para o service
   }
 
   @Patch(':id/review/:userId')

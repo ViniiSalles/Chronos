@@ -722,51 +722,121 @@ export class TaskService {
       .exec();
   }
 
-  async getBurndown(projectId: string, startDate: string) {
-    const project = await this.projectModel.findById(projectId).exec();
-    if (!project) throw new NotFoundException('Projeto não encontrado');
-    const start = new Date(startDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const result = await this.taskModel
-      .aggregate([
-        {
-          $match: {
-            projeto: new Types.ObjectId(projectId),
-            status: { $ne: 'done' },
-          },
-        },
-        {
-          $group: {
-            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-            pending: { $sum: 1 },
-          },
-        },
-        { $sort: { _id: 1 } },
-      ])
-      .exec();
-    const resultMap = new Map(result.map((r) => [r._id, r.pending]));
-    const finalResult: Array<{ date: string; pending: number }> = [];
-    for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
-      const dateStr = d.toISOString().split('T')[0];
-      finalResult.push({ date: dateStr, pending: resultMap.get(dateStr) || 0 });
+  // ... (dentro do seu Service, com as importações necessárias)
+
+  /**
+   * CORRIGIDO: Calcula o gráfico de Burndown.
+   * A lógica foi revertida para o modelo mais robusto de verificar o estado de cada tarefa
+   * para cada dia no período, garantindo a exatidão do gráfico.
+   */
+  async getBurndown(
+    projectId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<Array<{ date: string; pending: number }>> {
+    this.logger.log(
+      `[Burndown] Iniciando para ProjectID: ${projectId}, Período: ${startDate} a ${endDate}`,
+    );
+
+    if (!Types.ObjectId.isValid(projectId)) {
+      throw new BadRequestException('ID de projeto inválido.');
     }
-    return finalResult;
+
+    // Validação robusta de datas, evitando problemas de fuso horário na criação do objeto Date
+    const start = new Date(`${startDate}T00:00:00.000Z`);
+    const end = new Date(`${endDate}T23:59:59.999Z`);
+
+    const project = await this.projectModel.findById(projectId).exec();
+    if (!project) {
+      throw new NotFoundException('Projeto não encontrado');
+    }
+
+    // A busca de tarefas está correta: busca tarefas criadas antes do fim do período.
+    const relevantTasks = await this.taskModel
+      .find({
+        projeto: projectId,
+      })
+      .lean()
+      .exec();
+
+    this.logger.log(
+      `[Burndown] Encontradas ${relevantTasks.length} tarefas relevantes para o cálculo.`,
+    );
+    if (relevantTasks.length === 0) {
+      this.logger.warn(
+        '[Burndown] Nenhuma tarefa relevante encontrada. A query inicial não retornou dados.',
+      );
+    }
+
+    const burndownData: Array<{ date: string; pending: number }> = [];
+
+    for (
+      let day = new Date(start);
+      day <= end;
+      day.setUTCDate(day.getUTCDate() + 1)
+    ) {
+      const currentDayStr = day.toISOString().split('T')[0];
+      const endOfCurrentDay = new Date(day).setUTCHours(23, 59, 59, 999);
+      let pendingForThisDay = 0;
+
+      for (const task of relevantTasks) {
+        const wasCreated = task.dataInicio.getTime() <= endOfCurrentDay;
+
+        const wasCompleted = task.dataConclusao
+          ? task.dataConclusao.getTime() <= endOfCurrentDay
+          : false;
+
+        // Uma tarefa é considerada "pendente" no dia atual se:
+        // 1. Ela já havia sido criada.
+        // 2. E ela NÃO havia sido concluída ainda.
+        if (wasCreated && !wasCompleted) {
+          pendingForThisDay++;
+        }
+      }
+      burndownData.push({ date: currentDayStr, pending: pendingForThisDay });
+    }
+
+    this.logger.log(`[Burndown] Cálculo finalizado com sucesso.`);
+    return burndownData;
   }
 
-  async getProjection(projectId: string, startDate: string) {
+  /**
+   * CORRIGIDO: Calcula a projeção de tarefas pendentes criadas por dia.
+   * A lógica foi mantida (aggregate é eficiente), mas com tratamento de data mais robusto.
+   */
+  async getProjection(
+    projectId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<Array<{ date: string; pending: number }>> {
+    this.logger.log(
+      `[Projection] Iniciando para ProjectID: ${projectId}, Período: ${startDate} a ${endDate}`,
+    );
+
+    if (!Types.ObjectId.isValid(projectId)) {
+      throw new BadRequestException('ID de projeto inválido.');
+    }
+
+    // Validação robusta de datas
+    const start = new Date(`${startDate}T00:00:00.000Z`);
+    const end = new Date(`${endDate}T23:59:59.999Z`);
+
     const project = await this.projectModel.findById(projectId).exec();
-    if (!project) throw new NotFoundException('Projeto não encontrado');
-    const start = new Date(startDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    if (!project) {
+      throw new NotFoundException('Projeto não encontrado');
+    }
+
     const result = await this.taskModel
       .aggregate([
         {
           $match: {
-            projeto: new Types.ObjectId(projectId),
-            status: { $ne: 'done' },
-            dataInicio: { $lte: today },
+            projeto: projectId,
+            dataInicio: {
+              $gte: start,
+              $lte: end,
+            },
+            // Status que representam trabalho a ser feito
+            status: { $in: ['pending', 'in_progress'] },
           },
         },
         {
@@ -778,12 +848,18 @@ export class TaskService {
         { $sort: { _id: 1 } },
       ])
       .exec();
+
+    this.logger.log(`[Projection] Agregação retornou ${result.length} grupos.`);
+
     const resultMap = new Map(result.map((r) => [r._id, r.pending]));
     const finalResult: Array<{ date: string; pending: number }> = [];
-    for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+
+    for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
       const dateStr = d.toISOString().split('T')[0];
       finalResult.push({ date: dateStr, pending: resultMap.get(dateStr) || 0 });
     }
+
+    this.logger.log(`[Projection] Cálculo finalizado com sucesso.`);
     return finalResult;
   }
 

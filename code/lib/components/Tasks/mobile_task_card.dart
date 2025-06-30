@@ -5,20 +5,17 @@ import 'package:code/services/task_service.dart';
 import 'package:code/components/Tasks/task_edit.dart';
 import 'package:code/components/basicModals/exclude_modal.dart';
 
-class TaskCard extends StatelessWidget {
-  final String projectid;
+class TaskCardMobile extends StatelessWidget {
   final Task task;
-  final List<Map<String, dynamic>> projectTasks;
   final bool isSmall;
   final Function(TaskStatus) onStatusChanged;
 
-  const TaskCard(
-      {super.key,
-      required this.task,
-      required this.isSmall,
-      required this.onStatusChanged,
-      required this.projectid,
-      required this.projectTasks});
+  const TaskCardMobile({
+    super.key,
+    required this.task,
+    required this.isSmall,
+    required this.onStatusChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -62,42 +59,42 @@ class TaskCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, color: Colors.white),
-                      onSelected: (value) {
-                        // Adicione aqui as ações para cada item do menu
-                        if (value == 'editar') {
-                          print(task);
-                          showDialog(
-                            context: context,
-                            builder: (context) => TaskEdit(
-                              task: task.toJson(),
-                              tarefasExistentes: projectTasks,
-                              prioridades: [],
-                              niveis: [],
-                              idProjeto: projectid,
-                            ),
-                          );
-                          print(task.toJson());
-                        } else if (value == 'excluir') {
-                          showDialog(
-                            context: context,
-                            builder: (context) => ExcludeModal(
-                                type: "Task", itemId: task.toJson()["_id"]),
-                          );
-                        }
-                      },
-                      itemBuilder: (BuildContext context) => [
-                        const PopupMenuItem(
-                          value: 'editar',
-                          child: Text('Editar'),
-                        ),
-                        const PopupMenuItem(
-                          value: 'excluir',
-                          child: Text('Excluir'),
-                        ),
-                      ],
-                    ),
+                    // PopupMenuButton<String>(
+                    //   icon: const Icon(Icons.more_vert, color: Colors.white),
+                    //   onSelected: (value) {
+                    //   // Adicione aqui as ações para cada item do menu
+                    //   if (value == 'editar') {
+                    //     print(task);
+                    //      showDialog(
+                    //         context: context,
+                    //         builder: (context) => TaskEdit(
+                    //           task: task.toJson(),
+                    //           tarefasExistentes: projectTasks,
+                    //           prioridades: [],
+                    //           niveis: [],
+                    //           idProjeto: projectid,
+                    //         ),
+                    //       );
+                    //     print(task.toJson());
+                    //   } else if (value == 'excluir') {
+                    //     showDialog(
+                    //         context: context,
+                    //         builder: (context) => ExcludeModal(
+                    //             type: "Task", itemId: task.toJson()["_id"]),
+                    //       );
+                    //   }
+                    //   },
+                    //   itemBuilder: (BuildContext context) => [
+                    //   const PopupMenuItem(
+                    //     value: 'editar',
+                    //     child: Text('Editar'),
+                    //   ),
+                    //   const PopupMenuItem(
+                    //     value: 'excluir',
+                    //     child: Text('Excluir'),
+                    //   ),
+                    //   ],
+                    // ),
 
                     // DropdownButton<TaskStatus>(
                     //   value: TaskStatus.values.contains(task.status)

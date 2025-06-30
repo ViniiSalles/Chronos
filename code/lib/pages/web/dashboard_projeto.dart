@@ -321,36 +321,34 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
                   spreadRadius: 2,
                   blurRadius: 5)
             ]),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Tasks por Complexidade",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 20),
-              Expanded(
-                  child: BarChart(BarChartData(
-                      alignment: BarChartAlignment.spaceAround,
-                      maxY: 30,
-                      titlesData: FlTitlesData(
-                          show: true,
-                          bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                  showTitles: true,
-                                  getTitlesWidget: _getComplexityBottomTitles,
-                                  reservedSize: 38)),
-                          leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 40,
-                                  interval: 10)),
-                          topTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false)),
-                          rightTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false))),
-                      borderData: FlBorderData(show: false),
-                      gridData: const FlGridData(show: false),
-                      barGroups: _generateComplexityBarGroups())))
-            ]));
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text("Tasks por Complexidade",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
+          Expanded(
+              child: BarChart(BarChartData(
+                  alignment: BarChartAlignment.spaceAround,
+                  maxY: 30,
+                  titlesData: FlTitlesData(
+                      show: true,
+                      bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: _getComplexityBottomTitles,
+                              reservedSize: 38)),
+                      leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 40,
+                              interval: 10)),
+                      topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false))),
+                  borderData: FlBorderData(show: false),
+                  gridData: const FlGridData(show: false),
+                  barGroups: _generateComplexityBarGroups())))
+        ]));
   }
 
   Widget _buildStatusChart() {
@@ -408,36 +406,34 @@ class _DashboardProjetoState extends State<DashboardProjeto> {
                   spreadRadius: 2,
                   blurRadius: 5)
             ]),
-        child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("Tasks por Prioridade",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 20),
-              Expanded(
-                  child: BarChart(BarChartData(
-                      alignment: BarChartAlignment.spaceAround,
-                      maxY: 30,
-                      titlesData: FlTitlesData(
-                          show: true,
-                          bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                  showTitles: true,
-                                  getTitlesWidget: _getPriorityBottomTitles,
-                                  reservedSize: 38)),
-                          leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 40,
-                                  interval: 10)),
-                          topTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false)),
-                          rightTitles: const AxisTitles(
-                              sideTitles: SideTitles(showTitles: false))),
-                      borderData: FlBorderData(show: false),
-                      gridData: const FlGridData(show: false),
-                      barGroups: _generatePriorityBarGroups())))
-            ]));
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text("Tasks por Prioridade",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
+          Expanded(
+              child: BarChart(BarChartData(
+                  alignment: BarChartAlignment.spaceAround,
+                  maxY: 30,
+                  titlesData: FlTitlesData(
+                      show: true,
+                      bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                              showTitles: true,
+                              getTitlesWidget: _getPriorityBottomTitles,
+                              reservedSize: 38)),
+                      leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 40,
+                              interval: 10)),
+                      topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false))),
+                  borderData: FlBorderData(show: false),
+                  gridData: const FlGridData(show: false),
+                  barGroups: _generatePriorityBarGroups())))
+        ]));
   }
 
   Widget _buildCollaboratorsList() {

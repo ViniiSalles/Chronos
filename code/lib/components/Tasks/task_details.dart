@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 
 class TaskDetails extends StatefulWidget {
   // Objeto da tarefa principal recebido pela tela anterior
-  final Map<String, dynamic> task; 
+  final Map<String, dynamic> task;
 
   const TaskDetails({super.key, required this.task});
 
@@ -16,7 +16,7 @@ class TaskDetails extends StatefulWidget {
 class _TaskDetailsState extends State<TaskDetails> {
   // Lista para armazenar as tarefas que são pré-requisitos desta
   List<Map<String, dynamic>> tarefasRelacionadas = [];
-  
+
   // Variável para indicar se os dados ainda estão sendo carregados
   bool _isLoading = true;
 
@@ -34,7 +34,8 @@ class _TaskDetailsState extends State<TaskDetails> {
     if (!mounted) return;
 
     // Acessa a lista de IDs das tarefas anteriores a partir do widget.task
-    final List<dynamic> tarefasAnterioresIds = widget.task['tarefasAnteriores'] ?? [];
+    final List<dynamic> tarefasAnterioresIds =
+        widget.task['tarefasAnteriores'] ?? [];
 
     if (tarefasAnterioresIds.isNotEmpty) {
       try {
@@ -42,7 +43,8 @@ class _TaskDetailsState extends State<TaskDetails> {
 
         // Itera sobre cada ID para buscar os detalhes da tarefa correspondente
         for (var taskId in tarefasAnterioresIds) {
-          final url = Uri.parse('http://chronos-production-f584.up.railway.app/tasks/$taskId');
+          final url = Uri.parse(
+              'https://chronos-production-f584.up.railway.app/tasks/$taskId');
           final response = await http.get(url);
 
           if (response.statusCode == 200) {
@@ -50,14 +52,16 @@ class _TaskDetailsState extends State<TaskDetails> {
             tasksArray.add({
               "titulo": decoded["titulo"],
               "data": decoded['dataLimite'],
-              "status": decoded['status'] == "pending" ? "Pendente" : 'Em andamento'
+              "status":
+                  decoded['status'] == "pending" ? "Pendente" : 'Em andamento'
             });
           } else {
-             // Opcional: Tratar erros caso uma tarefa específica não seja encontrada
-            print('Erro ao buscar tarefa $taskId: Status ${response.statusCode}');
+            // Opcional: Tratar erros caso uma tarefa específica não seja encontrada
+            print(
+                'Erro ao buscar tarefa $taskId: Status ${response.statusCode}');
           }
         }
-        
+
         // Atualiza o estado com as tarefas encontradas
         if (mounted) {
           setState(() {
@@ -65,7 +69,6 @@ class _TaskDetailsState extends State<TaskDetails> {
             _isLoading = false;
           });
         }
-
       } catch (e) {
         // Trata erros de conexão ou outros problemas
         print('Ocorreu um erro ao buscar tarefas: $e');
@@ -76,8 +79,8 @@ class _TaskDetailsState extends State<TaskDetails> {
         }
       }
     } else {
-       // Se não houver tarefas anteriores, apenas para de carregar
-       if (mounted) {
+      // Se não houver tarefas anteriores, apenas para de carregar
+      if (mounted) {
         setState(() {
           _isLoading = false;
         });

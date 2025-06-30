@@ -387,6 +387,7 @@ class _KanbanProjectViewState extends State<KanbanProjectView> {
                   builder: (context) => BurndownChartPage(
                     projectId: widget.projectId,
                     queryStartDate: widget.projectStartDate,
+                    queryEndDate: DateTime.now(), // Ajuste conforme necessário
                   ),
                 ),
               );

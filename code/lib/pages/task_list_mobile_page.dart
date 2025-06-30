@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:code/components/mobile_layout.dart';
-import 'package:code/components/Tasks/task_card.dart';
+import 'package:code/components/Tasks/mobile_task_card.dart';
 import 'package:code/services/task_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -210,11 +210,11 @@ class _TaskListMobilePageState extends State<TaskListMobilePage> {
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final task = _tasks[index];
-                          // return TaskCard(
-                          //   task: task,
-                          //   isSmall: isSmall,
-                          //   onStatusChanged: (newStatus) => _handleStatusChange(task, newStatus),
-                          // );
+                          return TaskCardMobile(
+                            task: task,
+                            isSmall: isSmall,
+                            onStatusChanged: (newStatus) => _handleStatusChange(task, newStatus),
+                          );
                         },
                       ),
                     ),

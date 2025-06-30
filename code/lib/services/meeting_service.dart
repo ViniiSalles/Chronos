@@ -1,4 +1,4 @@
-// lib/servicesMobile/meeting_service.dart
+// lib/services/meeting_service.dart
 
 import 'dart:convert'; // Para jsonEncode, jsonDecode e utf8
 import 'package:code/pages/web/agenda_page.dart';

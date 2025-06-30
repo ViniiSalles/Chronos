@@ -1,12 +1,17 @@
+import 'dart:async';
+import 'package:code/services/task_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+
 import 'package:code/components/home/kanbanprojectview.dart';
 import 'package:flutter/material.dart';
 import 'package:code/common/constants/app_colors.dart';
 import 'package:code/components/home/topbar.dart';
 import 'package:code/components/home/sidebar.dart';
 import 'package:code/components/Tasks/task_registration_page.dart';
-import 'package:code/components/Tasks/tasks_by_project.dart'; // Presumindo que este é o widget ProjectTask
+import 'package:code/components/Tasks/tasks_by_project.dart';
 import 'package:code/components/search_filter_card.dart';
-import 'package:code/services/project_service.dart'; // Importa o ProjectService e a classe Project
+import 'package:code/services/project_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,39 +21,91 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<Project> projetos = []; // Lista de projetos obtidos do ProjectService
-  List<Project> _activeProjectsWithTasks =
-      []; // Para armazenar projetos com tarefas agrupadas
+  // Variáveis de estado existentes
+  List<Project> projetos = [];
+  List<Project> _activeProjectsWithTasks = [];
   bool isLoading = true;
   bool _showSearchFilter = false;
-  Project? _selectedProject; // O projeto atualmente selecionado na Sidebar
-
-  // Opções para o formulário de registro de tarefas
+  Project? _selectedProject;
   final List<String> _prioridadeOptionsForForm = ['Alta', 'Média', 'Baixa'];
   final List<String> _nivelOptionsForForm = ['A', 'B', 'C', 'D'];
+
+  // Variáveis para o WebSocket
+  IO.Socket? _socket;
 
   @override
   void initState() {
     super.initState();
-    _loadProjectsAndTasks(); // Alterado para carregar projetos e suas tarefas
+    _loadProjectsAndTasks();
+    _connectToSocket(); // Inicia a conexão com o WebSocket
   }
 
-  // Novo método para buscar e agrupar projetos e tarefas
+  @override
+  void dispose() {
+    _disconnectFromSocket(); // Encerra a conexão ao sair da tela
+    super.dispose();
+  }
+
+  void _connectToSocket() {
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) {
+      print('WebSocket: Usuário não logado.');
+      return;
+    }
+
+    if (_socket != null && _socket!.connected) return;
+
+    _disconnectFromSocket();
+
+    _socket = IO
+        .io('https://chronos-production-f584.up.railway.app', <String, dynamic>{
+      'transports': ['websocket'],
+      'autoConnect': true,
+      'query': {'firebaseUid': currentUser.uid},
+    });
+
+    _socket!.onConnect((_) {
+      print('WebSocket: Conectado com sucesso com o ID: ${_socket?.id}');
+    });
+
+    _socket!.on('taskCreated', (data) {
+      print('WebSocket: Evento "taskCreated" recebido!');
+      if (mounted) {
+        // Exibe o toast genérico de notificação
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            // MODIFICADO: O texto do toast agora é genérico.
+            content: Text('Você tem uma nova notificação!'),
+            backgroundColor:
+                AppColors.primary, // Cor ajustada para o padrão do app
+          ),
+        );
+        // Recarrega os projetos e tarefas para exibir os novos dados
+        _loadProjectsAndTasks();
+      }
+    });
+
+    _socket!.onDisconnect((_) => print('WebSocket: Desconectado.'));
+    _socket!.onError((error) => print('WebSocket: Erro de conexão - $error'));
+  }
+
+  void _disconnectFromSocket() {
+    _socket?.disconnect();
+    _socket?.dispose();
+    _socket = null;
+  }
+
   Future<void> _loadProjectsAndTasks() async {
     setState(() {
       isLoading = true;
     });
 
     try {
-      // 1. Carregar todos os projetos do usuário
       final fetchedProjects = await ProjectService.getMyProjects();
-
-      // Se sua API de `my-projects` já retorna o projeto com as tarefas aninhadas:
       if (!mounted) return;
       setState(() {
         projetos = fetchedProjects;
-        _activeProjectsWithTasks =
-            fetchedProjects; // Usar os projetos carregados diretamente
+        _activeProjectsWithTasks = fetchedProjects;
         isLoading = false;
       });
     } catch (e) {
@@ -65,27 +122,23 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Método para lidar com a seleção de um projeto na Sidebar
   void _handleProjectSelection(Project project) {
     setState(() {
       _selectedProject = project;
     });
   }
 
-  // Método para abrir o formulário de registro de tarefa
   void _abrirFormularioTask({
     required String projectId,
     required List<Map<String, dynamic>> tasksProjeto,
     required List<Map<String, dynamic>> usersProjeto,
   }) {
-    // Formata as tarefas existentes para o formato esperado pelo TaskFormDialog
     final List<Map<String, dynamic>> tarefasExistentesFormatadas = [];
     for (var item in tasksProjeto) {
       tarefasExistentesFormatadas
           .add({"id": item['_id'], "name": item['titulo']});
     }
 
-    // Formata a lista de responsáveis para o formato esperado pelo TaskFormDialog
     final List<Map<String, dynamic>> responsaveisFormatados = [];
     for (var userMap in usersProjeto) {
       responsaveisFormatados
@@ -95,21 +148,19 @@ class _HomePageState extends State<HomePage> {
     showDialog(
       context: context,
       builder: (context) => TaskFormDialog(
-        id: projectId, // Passa o ID do projeto
+        id: projectId,
         tarefasExistentes: tarefasExistentesFormatadas,
-        prioridades:
-            _prioridadeOptionsForForm, // Usando as opções de prioridade globais
-        niveis: _nivelOptionsForForm, // Usando as opções de nível globais
+        prioridades: _prioridadeOptionsForForm,
+        niveis: _nivelOptionsForForm,
         responsaveis: responsaveisFormatados,
       ),
     ).then((_) {
-      _loadProjectsAndTasks(); // Recarrega projetos e tarefas após fechar o formulário
+      _loadProjectsAndTasks();
     });
   }
 
   void _handleFilter(String searchText, String type, String sort) {
     print('Search: $searchText, Type: $type, Sort: $sort');
-    // Implementar a lógica de filtragem aqui
   }
 
   @override
@@ -121,8 +172,7 @@ class _HomePageState extends State<HomePage> {
           : Stack(
               children: [
                 RefreshIndicator(
-                  onRefresh:
-                      _loadProjectsAndTasks, // Recarrega tudo ao puxar para atualizar
+                  onRefresh: _loadProjectsAndTasks,
                   child: Row(
                     children: [
                       Sidebar(
@@ -135,15 +185,13 @@ class _HomePageState extends State<HomePage> {
                           });
                         },
                         isSearchSelected: _showSearchFilter,
-                        onProjectsUpdated:
-                            _loadProjectsAndTasks, // Callback para atualizar a lista de projetos
+                        onProjectsUpdated: _loadProjectsAndTasks,
                       ),
                       Expanded(
-                        child: _selectedProject ==
-                                null // Se nenhum projeto estiver selecionado na sidebar
+                        child: _selectedProject == null
                             ? Column(
                                 children: [
-                                  const TopBar(), // Sua barra superior
+                                  const TopBar(),
                                   Expanded(
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
@@ -155,11 +203,11 @@ class _HomePageState extends State<HomePage> {
                                             CrossAxisAlignment.start,
                                         children: [
                                           const SizedBox(height: 16),
-                                          Row(
+                                          const Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
-                                              const Text(
+                                              Text(
                                                 'Minhas tasks',
                                                 style: TextStyle(
                                                   fontSize: 22,
@@ -167,10 +215,6 @@ class _HomePageState extends State<HomePage> {
                                                   color: AppColors.textPrimary,
                                                 ),
                                               ),
-                                              // Este botão de adicionar tarefa geral foi removido,
-                                              // pois você já tem um botão "adicionar" por projeto.
-                                              // Se você quiser um botão "adicionar tarefa" geral, ele precisaria
-                                              // de uma lógica para perguntar a qual projeto a tarefa pertence.
                                             ],
                                           ),
                                           const Divider(height: 32),
@@ -240,7 +284,7 @@ class _HomePageState extends State<HomePage> {
                                                                           .tasks,
                                                                   usersProjeto:
                                                                       project
-                                                                          .users, // Passa a lista de usuários do projeto
+                                                                          .users,
                                                                 ),
                                                                 style: ElevatedButton
                                                                     .styleFrom(
@@ -280,10 +324,8 @@ class _HomePageState extends State<HomePage> {
                                                                     String,
                                                                     dynamic>
                                                                 task) {
-                                                              _loadProjectsAndTasks(); // Recarrega após mudança de tarefa
+                                                              _loadProjectsAndTasks();
                                                             },
-                                                            // O projectId aqui é passado para ProjectTask, se ele precisar para algo interno
-                                                            // mas não é usado na função fetchData que você definiu.
                                                             projectId:
                                                                 project.id,
                                                           ),
@@ -322,7 +364,7 @@ class _HomePageState extends State<HomePage> {
                 if (_showSearchFilter)
                   Positioned(
                     top: 100,
-                    left: 240, // Ajuste a posição conforme seu layout
+                    left: 240,
                     child: SearchFilterCard(
                       onFilter: _handleFilter,
                       onClose: () {
@@ -334,16 +376,6 @@ class _HomePageState extends State<HomePage> {
                   ),
               ],
             ),
-      // floatingActionButton: FloatingActionButton(
-      //   onPressed: () {
-      //     Navigator.pushNamed(context, '/project-registration').then((_) {
-      //       _loadProjectsAndTasks(); // Recarrega projetos após registrar um novo
-      //     });
-      //   },
-      //   backgroundColor: AppColors.primary,
-      //   foregroundColor: Colors.white,
-      //   child: const Icon(Icons.add),
-      // ),
     );
   }
 }

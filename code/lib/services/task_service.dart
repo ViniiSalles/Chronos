@@ -1,8 +1,9 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert'; // Para jsonDecode e utf8
+import 'package:http/http.dart' as http; // Para chamadas HTTP
+import 'package:firebase_auth/firebase_auth.dart'; // Para autenticação Firebase
 
 // Certifique-se de que este import esteja correto
+// import 'package:code/servicesMobile/api_service.dart'; // Comentado, pois não é usado diretamente aqui
 
 // Definição do Enum TaskStatus
 enum TaskStatus {
@@ -28,7 +29,9 @@ class UserData {
 
   factory UserData.fromJson(Map<String, dynamic> json) {
     return UserData(
-      id: json['_id']?.toString() ?? json['id']?.toString() ?? '',
+      id: json['_id']?.toString() ??
+          json['id']?.toString() ??
+          '', // Pega _id ou id
       nome: json['nome']?.toString() ?? 'Nome Indisponível',
       email: json['email']?.toString(),
     );
@@ -54,7 +57,7 @@ class Projeto {
     this.dataInicio,
     this.dataFim,
     this.status,
-    this.tasks = const [],
+    this.tasks = const [], // Inicializa como lista de strings vazia
     this.users = const [],
   });
 
@@ -73,7 +76,7 @@ class Projeto {
       tasks: (json['tasks'] as List<dynamic>?)
               ?.map((t) => t.toString())
               .toList() ??
-          [],
+          [], // Converte IDs para String
       users: (json['users'] as List<dynamic>?)
               ?.map((u) => u as Map<String, dynamic>)
               .toList() ??
@@ -135,7 +138,8 @@ class Task {
         complexidade: json['complexidade']?.toString() ?? '',
         assignedTo: json['atribuicoes'] != null &&
                 (json['atribuicoes'] as List).isNotEmpty
-            ? (json['atribuicoes'] as List)[0].toString()
+            ? (json['atribuicoes'] as List)[0]
+                .toString() // Pega o primeiro ID da lista
             : null,
         projectId: json['projeto'] is String
             ? json['projeto']?.toString()
@@ -157,7 +161,8 @@ class Task {
 
   Map<String, dynamic> toJson() {
     return {
-      '_id': id,
+      '_id':
+          id, // Inclui _id para update/delete se necessário, mas não para criação
       'titulo': title,
       'descricao': description,
       'prioridade': priority.toString(),
@@ -165,7 +170,7 @@ class Task {
       'projeto': projectId,
       'status': getStatusString(status),
       'dataLimite': deadline?.toIso8601String(),
-      'atribuicoes': assignedTo != null ? [assignedTo] : [],
+      'atribuicoes': assignedTo != null ? [assignedTo] : [], // Lista de IDs
       'tarefasAnteriores': tarefasAnteriores,
     };
   }
@@ -189,7 +194,8 @@ class Task {
       case 'cancelado':
         return TaskStatus.cancelled;
       case 'approved':
-        return TaskStatus.completed;
+        return TaskStatus
+            .completed; // Mapeia approved para completed no frontend
       default:
         return TaskStatus.pending;
     }
@@ -233,13 +239,15 @@ class BurndownDataPoint {
 // Service para interagir com a API de Tarefas
 class TaskService {
   static const String _tasksEndpoint = '/tasks';
-  static const String _baseUrl =
-      'https://chronos-production-f584.up.railway.app';
+  // Alterado para a URL de produção/Hospedagem, conforme o cenário.
+  // Se estiver testando localmente, mude para 'http://localhost:3000'.
+  static const String _baseUrl = 'https://chronos-production-f584.up.railway.app';
 
   static Future<String?> _getToken() async {
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      return await user.getIdToken();
+      String? token = await user.getIdToken();
+      return token;
     }
     print('TaskService: Usuário não autenticado.');
     return null;
@@ -440,8 +448,8 @@ class TaskService {
       final response = await http.patch(
         url,
         headers: {
-          'Authorization': 'Bearer $token',
           'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer $token',
         },
         body: json.encode({}),
       );
@@ -467,7 +475,7 @@ class TaskService {
     }
   }
 
-  // NOVO MÉTODO: Função para completar as tarefas (com tempo_gasto_horas e code)
+  // Função para completar as tarefas (com tempo_gasto_horas e code)
   static Future<bool> completeTask(String taskId, String userId,
       double tempoGastoHoras, String? code) async {
     final String? token = await _getToken();
@@ -517,9 +525,9 @@ class TaskService {
     }
   }
 
-// Busca dados para o gráfico de Burndown
+  // Busca dados para o gráfico de Burndown
   static Future<List<BurndownDataPoint>> getBurndownData(
-      String projectId, DateTime startDateQuery) async {
+      String projectId, DateTime startDateQuery, DateTime endDateQuery) async {
     final token = await _getToken();
     if (token == null) {
       throw Exception(
@@ -529,8 +537,14 @@ class TaskService {
         '${startDateQuery.year.toString().padLeft(4, '0')}-'
         '${startDateQuery.month.toString().padLeft(2, '0')}-'
         '${startDateQuery.day.toString().padLeft(2, '0')}';
+    final String endDateString =
+        '${endDateQuery.year.toString().padLeft(4, '0')}-'
+        '${endDateQuery.month.toString().padLeft(2, '0')}-'
+        '${endDateQuery.day.toString().padLeft(2, '0')}';
+
     final Uri url = Uri.parse(
-        '$_baseUrl$_tasksEndpoint/burndown/$projectId?start=$startDateString');
+        '$_baseUrl$_tasksEndpoint/burndown/$projectId?start=$startDateString&end=$endDateString'); // ADICIONADO &end
+
     try {
       final response = await http.get(
         url,
@@ -561,7 +575,8 @@ class TaskService {
 
 // Busca dados para o gráfico de Projeção
   static Future<List<BurndownDataPoint>> getProjectionData(
-      String projectId, DateTime startDateQuery) async {
+      String projectId, DateTime startDateQuery, DateTime endDateQuery) async {
+    // ADICIONADO endDateQuery
     final token = await _getToken();
     if (token == null) {
       throw Exception(
@@ -571,8 +586,14 @@ class TaskService {
         '${startDateQuery.year.toString().padLeft(4, '0')}-'
         '${startDateQuery.month.toString().padLeft(2, '0')}-'
         '${startDateQuery.day.toString().padLeft(2, '0')}';
+    final String endDateString =
+        '${endDateQuery.year.toString().padLeft(4, '0')}-'
+        '${endDateQuery.month.toString().padLeft(2, '0')}-'
+        '${endDateQuery.day.toString().padLeft(2, '0')}';
+
     final Uri url = Uri.parse(
-        '$_baseUrl$_tasksEndpoint/projection/$projectId?start=$startDateString');
+        '$_baseUrl$_tasksEndpoint/projection/$projectId?start=$startDateString&end=$endDateString'); // ADICIONADO &end
+
     try {
       final response = await http.get(
         url,
@@ -605,11 +626,11 @@ class TaskService {
   static Future<List<Task>> findAssignedTasksForUser() async {
     final String? token = await _getToken();
     if (token == null) {
-      print('TaskService (findAssignedTasksForUser): Token não encontrado.');
+      print(
+          'TaskService (findAssignedTasksForUser): Token de autenticação não encontrado.');
       return [];
     }
 
-    // O endpoint dedicado que retorna apenas as tarefas do usuário logado.
     final Uri url = Uri.parse('$_baseUrl$_tasksEndpoint/my-assigned');
 
     try {
@@ -626,11 +647,12 @@ class TaskService {
         return tasksList.map((taskJson) => Task.fromJson(taskJson)).toList();
       } else {
         print(
-            'TaskService (findAssignedTasksForUser): Erro ao buscar tarefas. Status: ${response.statusCode}');
+            'TaskService (findAssignedTasksForUser): Erro ao buscar tarefas atribuídas. Status: ${response.statusCode}, Corpo: ${response.body}');
         return [];
       }
     } catch (e) {
-      print('TaskService (findAssignedTasksForUser): Exceção: $e');
+      print(
+          'TaskService (findAssignedTasksForUser): Exceção ao buscar tarefas atribuídas: $e');
       return [];
     }
   }
@@ -651,8 +673,7 @@ class TaskService {
     }
     final String userId = currentUser.uid;
 
-    final Uri url = Uri.parse(
-        '$_baseUrl$_tasksEndpoint/user/$userId'); // Endpoint no backend: /tasks/user/:userId
+    final Uri url = Uri.parse('$_baseUrl$_tasksEndpoint/user/$userId');
 
     try {
       final response = await http.get(
@@ -726,6 +747,54 @@ class TaskService {
     } catch (e) {
       print('TaskService (reviewTaskUser): Exceção ao avaliar tarefa: $e');
       throw Exception('Exceção ao avaliar tarefa: ${e.toString()}');
+    }
+  }
+
+  // NOVO MÉTODO: Busca tarefas de um projeto que estão atribuídas a um usuário logado
+  // e cujo status é 'pending' ou 'in_progress'.
+  static Future<List<Task>> findActiveAssignedTasksInProject(
+      String projectId) async {
+    final String? token = await _getToken();
+    if (token == null) {
+      print(
+          'TaskService (findActiveAssignedTasksInProject): Token de autenticação não encontrado.');
+      return [];
+    }
+
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null || currentUser.uid.isEmpty) {
+      print(
+          'TaskService (findActiveAssignedTasksInProject): UID do usuário logado não encontrado.');
+      return [];
+    }
+
+    final Uri url = Uri.parse(
+        '$_baseUrl$_tasksEndpoint/$projectId/my-active-assigned'); // Endpoint no backend
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> tasksList =
+            json.decode(utf8.decode(response.bodyBytes));
+        return tasksList.map((taskJson) => Task.fromJson(taskJson)).toList();
+      } else {
+        print(
+            'TaskService (findActiveAssignedTasksInProject): Erro ao buscar tarefas. Status: ${response.statusCode}, Corpo: ${utf8.decode(response.bodyBytes)}');
+        throw Exception(
+            'Falha ao carregar tarefas ativas e atribuídas: ${utf8.decode(response.bodyBytes)}');
+      }
+    } catch (e) {
+      print(
+          'TaskService (findActiveAssignedTasksInProject): Exceção ao buscar tarefas: $e');
+      throw Exception(
+          'Exceção ao buscar tarefas ativas e atribuídas: ${e.toString()}');
     }
   }
 }

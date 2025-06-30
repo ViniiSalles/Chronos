@@ -10,11 +10,11 @@ export class AvaliacaoTask {
   task_id: Types.ObjectId;
 
   // ID do usuário que executou a tarefa
-  @Prop({ type: Types.ObjectId, ref: 'Usuario'})
+  @Prop({ type: Types.ObjectId, ref: 'Usuario' })
   user_id_do_avaliado: Types.ObjectId;
 
   // CAMPO ADICIONADO: ID do usuário que fez a avaliação (o gerente/admin)
-  @Prop({ type: Types.ObjectId, ref: 'Usuario'})
+  @Prop({ type: Types.ObjectId, ref: 'Usuario' })
   user_id_do_avaliador: Types.ObjectId;
 
   @Prop()

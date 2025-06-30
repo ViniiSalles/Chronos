@@ -1,20 +1,22 @@
 import 'package:code/common/constants/app_colors.dart';
+import 'package:code/services/task_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:code/common/theme/app_theme.dart';
-import 'package:code/services/task_service.dart';
-import 'package:intl/intl.dart';
+import 'package:code/common/theme/app_theme.dart'; // Importe seu tema
+import 'package:intl/intl.dart'; // Para formatação de data
 
 import 'dart:math';
 
 class BurndownChartPage extends StatefulWidget {
   final String projectId;
   final DateTime queryStartDate;
+  final DateTime queryEndDate; // NOVO: Data de fim do intervalo
 
   const BurndownChartPage({
     super.key,
     required this.projectId,
     required this.queryStartDate,
+    required this.queryEndDate, // NOVO
   });
 
   @override
@@ -22,31 +24,37 @@ class BurndownChartPage extends StatefulWidget {
 }
 
 class _BurndownChartPageState extends State<BurndownChartPage> {
-  // Removida a lista _idealSpots
   List<FlSpot> _actualSpots = [];
   List<FlSpot> _projectionSpots = [];
   bool _isLoading = true;
   String? _errorMessage;
 
-  double _maxX = 5;
-  double _maxY = 100;
+  double _maxX = 0; // Será calculado dinamicamente
+  double _maxY = 10; // Será calculado dinamicamente
   List<String> _dateLabels = [];
 
   late DateTime _selectedQueryStartDate;
+  late DateTime
+      _selectedQueryEndDate; // NOVO: Variável de estado para a data de fim
 
   @override
   void initState() {
     super.initState();
     _selectedQueryStartDate = widget.queryStartDate;
+    _selectedQueryEndDate =
+        widget.queryEndDate; // Inicializa com a data de fim passada
     _fetchBurndownData();
   }
 
-  Future<void> _selectDate(BuildContext context) async {
+  // Método para abrir o seletor de data
+  // Modificado para aceitar qual campo de data está sendo selecionado
+  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedQueryStartDate,
+      initialDate:
+          isStartDate ? _selectedQueryStartDate : _selectedQueryEndDate,
       firstDate: DateTime(2000),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+      lastDate: DateTime(2100), // Permite datas futuras
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -61,10 +69,22 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
         );
       },
     );
-    if (picked != null && picked != _selectedQueryStartDate) {
+    if (picked != null) {
       setState(() {
-        _selectedQueryStartDate = picked;
-        _fetchBurndownData();
+        if (isStartDate) {
+          _selectedQueryStartDate = picked;
+          // Se a data de início for posterior à data de fim, ajusta a data de fim
+          if (_selectedQueryStartDate.isAfter(_selectedQueryEndDate)) {
+            _selectedQueryEndDate = _selectedQueryStartDate;
+          }
+        } else {
+          _selectedQueryEndDate = picked;
+          // Se a data de fim for anterior à data de início, ajusta a data de início
+          if (_selectedQueryEndDate.isBefore(_selectedQueryStartDate)) {
+            _selectedQueryStartDate = _selectedQueryEndDate;
+          }
+        }
+        _fetchBurndownData(); // Recarrega os dados com as novas datas
       });
     }
   }
@@ -73,7 +93,6 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
     setState(() {
       _isLoading = true;
       _errorMessage = null;
-      // Removido _idealSpots = [];
       _actualSpots = [];
       _projectionSpots = [];
       _dateLabels = [];
@@ -84,32 +103,33 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
     try {
       final List<BurndownDataPoint> burndownDataPoints =
           await TaskService.getBurndownData(
-              widget.projectId, _selectedQueryStartDate);
+              widget.projectId,
+              _selectedQueryStartDate,
+              _selectedQueryEndDate); // NOVO: Passa endDateQuery
 
       final List<BurndownDataPoint> projectionDataPoints =
           await TaskService.getProjectionData(
-              widget.projectId, _selectedQueryStartDate);
+              widget.projectId,
+              _selectedQueryStartDate,
+              _selectedQueryEndDate); // NOVO: Passa endDateQuery
 
       if (!mounted) return;
 
-      // Combine e processe os dados
+      // Combine e processe os dados (lógica de combinação e reindexação)
       List<BurndownDataPoint> combinedData = [];
-      if (burndownDataPoints.isNotEmpty) {
-        combinedData.addAll(burndownDataPoints);
-      }
-      if (projectionDataPoints.isNotEmpty) {
-        int startDayIndexForProjection = 0;
-        if (burndownDataPoints.isNotEmpty) {
-          startDayIndexForProjection = burndownDataPoints.last.dayIndex + 1;
-        }
+      combinedData.addAll(burndownDataPoints);
 
-        for (var i = 0; i < projectionDataPoints.length; i++) {
-          combinedData.add(BurndownDataPoint(
-            date: projectionDataPoints[i].date,
-            pending: projectionDataPoints[i].pending,
-            dayIndex: startDayIndexForProjection + i,
-          ));
-        }
+      // Adiciona pontos de projeção, ajustando o dayIndex para continuidade
+      // O dayIndex deve ser re-calculado sobre o combinedData para garantir a sequência
+      int startDayIndexForProjection = burndownDataPoints.length > 0
+          ? burndownDataPoints.last.dayIndex + 1
+          : 0;
+      for (var i = 0; i < projectionDataPoints.length; i++) {
+        combinedData.add(BurndownDataPoint(
+          date: projectionDataPoints[i].date,
+          pending: projectionDataPoints[i].pending,
+          dayIndex: startDayIndexForProjection + i,
+        ));
       }
 
       combinedData.sort((a, b) => a.date.compareTo(b.date));
@@ -117,7 +137,8 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
         combinedData[i] = BurndownDataPoint(
           date: combinedData[i].date,
           pending: combinedData[i].pending,
-          dayIndex: i,
+          dayIndex:
+              i, // Recalcula o dayIndex para ser sequencial após ordenação
         );
       }
 
@@ -130,9 +151,15 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
         return;
       }
 
-      _actualSpots = burndownDataPoints
-          .map((dp) => FlSpot(dp.dayIndex.toDouble(), dp.pending.toDouble()))
-          .toList();
+      // Re-mapeia os pontos de burndown e projeção com base nos dayIndex combinados
+      _actualSpots = burndownDataPoints.map((dp) {
+        final matchingCombinedPoint = combinedData.firstWhere(
+          (element) => element.date == dp.date,
+          orElse: () => dp, // Fallback se não encontrar (não deveria acontecer)
+        );
+        return FlSpot(
+            matchingCombinedPoint.dayIndex.toDouble(), dp.pending.toDouble());
+      }).toList();
 
       _projectionSpots = projectionDataPoints.map((dp) {
         final matchingCombinedPoint = combinedData.firstWhere(
@@ -147,7 +174,6 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
           .map((dp) => DateFormat('dd/MM').format(dp.date))
           .toList();
 
-      // Removida a lógica de cálculo de _idealSpots
       double initialWork = burndownDataPoints.isNotEmpty
           ? burndownDataPoints.first.pending.toDouble()
           : 0.0;
@@ -169,7 +195,7 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
       }
 
       _maxY = max(initialWork, max(maxPendingActual, maxPendingProjection));
-      if (_maxY == 0) _maxY = 10;
+      if (_maxY == 0) _maxY = 10; // Garante um maxY mínimo
 
       setState(() {
         _isLoading = false;
@@ -180,7 +206,6 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
         _isLoading = false;
         _errorMessage = e.toString().replaceFirst("Exception: ", "");
         _actualSpots = [];
-        // Removido _idealSpots = [];
         _projectionSpots = [];
         _maxX = 0;
         _maxY = 10;
@@ -201,10 +226,9 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
       text = '';
     }
     return SideTitleWidget(
-      // axisSide: meta.axisSide,
       space: 4,
-      meta: meta,
       child: Text(text, style: style),
+      meta: meta,
     );
   }
 
@@ -226,23 +250,52 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : () => _selectDate(context),
-                icon: const Icon(Icons.calendar_today),
-                label: Text(
-                  'Data de Início: ${DateFormat('dd/MM/yyyy').format(_selectedQueryStartDate)}',
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+            // Seletores de Data de Início e Fim
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoading
+                        ? null
+                        : () => _selectDate(
+                            context, true), // Seleciona data de início
+                    icon: const Icon(Icons.calendar_today),
+                    label: Text(
+                      'Início: ${DateFormat('dd/MM/yyyy').format(_selectedQueryStartDate)}',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 12),
+                    ),
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 ),
-              ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoading
+                        ? null
+                        : () => _selectDate(
+                            context, false), // Seleciona data de fim
+                    icon: const Icon(Icons.calendar_today),
+                    label: Text(
+                      'Fim: ${DateFormat('dd/MM/yyyy').format(_selectedQueryEndDate)}',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             if (_isLoading)
@@ -268,9 +321,7 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
                   ),
                 ],
               )))
-            else if (_actualSpots.isEmpty &&
-                _projectionSpots
-                    .isEmpty) // Ajustado para verificar apenas real e projeção
+            else if (_actualSpots.isEmpty && _projectionSpots.isEmpty)
               const Expanded(
                   child: Center(
                       child: Text(
@@ -341,7 +392,7 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
                                 text: spot.bar.color ==
                                         Colors.red.withOpacity(0.8)
                                     ? ' (Real)'
-                                    : ' (Projeção)', // Ajustado para remover a linha ideal
+                                    : ' (Projeção)',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.normal,
                                 ),
@@ -350,7 +401,6 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
                       }).toList();
                     })),
                     lineBarsData: [
-                      // Removida a LineChartBarData para a linha ideal
                       LineChartBarData(
                         spots: _actualSpots,
                         isCurved: true,
@@ -378,7 +428,6 @@ class _BurndownChartPageState extends State<BurndownChartPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Removida a entrada da legenda para a linha ideal
                 Container(
                     width: 16, height: 16, color: Colors.red.withOpacity(0.8)),
                 const SizedBox(width: 8),
