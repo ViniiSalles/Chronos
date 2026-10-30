@@ -4,7 +4,7 @@ Plataforma web e mobile de gestão ágil de projetos e tarefas, pensada para equ
 
 Projeto acadêmico desenvolvido no curso de Engenharia de Software da PUC Minas (1º semestre de 2025).
 
-<!-- Adicione aqui 2 ou 3 prints das principais telas (login, lista de projetos, quadro Kanban) -->
+![Tela "Minhas tasks" com as tarefas do projeto em cards](code/flutter_02.png)
 
 ## Funcionalidades
 
